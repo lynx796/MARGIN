@@ -1,7 +1,17 @@
 import { expect, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 export const fixture = (name: string, ext = 'pdf') => fileURLToPath(new URL(`../../../fixtures/${name}/${name}.${ext}`, import.meta.url));
+
+/** A fixture as an in-memory upload, for mixing with other in-memory files. */
+export const upload = (name: string, ext = 'pdf') => ({
+  name: `${name}.${ext}`,
+  mimeType: ext === 'pdf' ? 'application/pdf' : 'application/json',
+  buffer: readFileSync(fixture(name, ext)),
+});
+
+export const uploadText = (name: string, text: string) => ({ name, mimeType: 'application/json', buffer: Buffer.from(text) });
 
 /** Collects console errors and CSP violations; tests assert none occurred. */
 export function watchErrors(page: Page): string[] {

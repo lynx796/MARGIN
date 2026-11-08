@@ -29,6 +29,15 @@
     });
   }
 
+  // The first measured width after opening a document decides the "fit width" zoom.
+  $effect(() => {
+    const width = app.viewerWidth;
+    if (app.fitPending && scroller && width > 0 && app.geometry) {
+      app.fitPending = false;
+      app.setZoom(app.fitZoom());
+    }
+  });
+
   // Keep the page centered when zooming: preserve the scroll position relative to the document.
   let lastZoom = app.zoom;
   $effect(() => {

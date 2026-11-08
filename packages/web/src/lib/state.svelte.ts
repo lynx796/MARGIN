@@ -92,6 +92,8 @@ class App {
   /** CSS px per output pt. */
   zoom = $state(1);
   viewerWidth = $state(1000);
+  /** Fit the pages to the viewer once its width is known (right after a document opens). */
+  fitPending = $state(false);
   sidebarOpen = $state(true);
   settingsOpen = $state(false);
   searchOpen = $state(false);
@@ -122,6 +124,7 @@ class App {
   private pendingBase: AnnotFile | null = null;
 
   private fonts: FontSet | null = null;
+  private fontsLoading: Promise<FontSet> | null = null;
   private inks: ([number, number] | null)[] = [];
   private texts = new Map<number, PageText>();
   private textLoads = new Map<number, Promise<PageText>>();
@@ -181,8 +184,13 @@ class App {
 
   // ── Startup ─────────────────────────────────────────────────────────────────────────────────
 
+  private ensureFonts(): Promise<FontSet> {
+    this.fontsLoading ??= loadFonts().then((f) => (this.fonts = f));
+    return this.fontsLoading;
+  }
+
   async init(): Promise<void> {
-    this.fonts = await loadFonts();
+    await this.ensureFonts();
     try {
       this.storageKind = await storage.kind();
       this.recent = await storage.list();
@@ -296,6 +304,7 @@ class App {
       this.currentPage = 1;
       this.rebuildGeometry();
       this.zoom = this.fitZoom();
+      this.fitPending = true;
       await this.relayout();
       await storage.savePdf({ sha: pdf.sha256, name, pageCount: pdf.pageCount }, bytes).catch(() => undefined);
       this.scheduleSave();
@@ -392,10 +401,11 @@ class App {
     const token = ++this.layoutToken;
     const file = this.effectiveFile();
     const geometry = this.geometry;
-    if (!file || !geometry || !this.fonts) return;
+    if (!file || !geometry) return;
+    const fonts = await this.ensureFonts();
     await prepareFileMath(file);
     if (token !== this.layoutToken) return;
-    this.layout = computeLayout({ file, geometry, fonts: this.fonts });
+    this.layout = computeLayout({ file, geometry, fonts });
   }
 
   fitZoom(): number {
@@ -406,7 +416,7 @@ class App {
   }
 
   setZoom(z: number): void {
-    this.zoom = Math.min(4, Math.max(0.25, Math.round(z * 100) / 100));
+    this.zoom = Math.min(4, Math.max(0.25, z));
   }
 
   // ── Model changes with history ──────────────────────────────────────────────────────────────
@@ -650,7 +660,7 @@ class App {
     for (let p = 1; p <= this.pdf.pageCount; p++) {
       const text = await this.ensureText(p);
       if (query !== this.searchQuery) return; // a newer query superseded this one
-      for (const m of new PageIndex(text).find(needle)) hits.push({ kind: 'text', page: p, quads: quadsForRange(text, m.start, m.end) });
+      for (const m of new PageIndex(text).find(needle, { ignoreCase: true })) hits.push({ kind: 'text', page: p, quads: quadsForRange(text, m.start, m.end) });
     }
     const lower = q.toLowerCase();
     for (const id of this.commentOrder) {

@@ -1,4 +1,4 @@
-import schema from '../../../../schema/annot.schema.json';
+import schema from '../../../../schema/annot.schema.json' with { type: 'json' };
 import { MarginError } from '../errors.ts';
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, DEFAULT_WEIGHT } from './defaults.ts';
 import { cryptoRandomBytes, newId, type RandomBytes } from './ids.ts';

@@ -15,14 +15,17 @@
     "@codemirror/commands": "^6.11.1",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
-    "@margin/core": "workspace:*",
     "codemirror": "^6.0.2",
     "svelte": "^5.57.3"
   },
   "devDependencies": {
+    "@margin/core": "workspace:*",
     "@mathjax/mathjax-fira-font": "^4.1.3",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/pngjs": "^6.0.5",
     "pdfjs-dist": "^6.5.438",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
     "svelte-check": "^4.7.8",
     "typescript": "~6.0.3",
     "vite": "^8.3.6"
