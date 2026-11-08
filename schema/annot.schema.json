@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://margin.local/schema/annot/v1.json",
+  "title": "Margin annotation file",
+  "description": "Sidecar file <name>.annot.json holding all annotations of one PDF (spec §4). Coordinates are PDF points in the original page, origin at the top-left of the CropBox, y down; pages are 1-based. This schema describes what tools accept: ids, timestamps, side and origin may be omitted and are filled in by the next tool that loads the file. Unknown fields are allowed everywhere and preserved; put agent metadata under x-* keys.",
+  "type": "object",
+  "required": ["format", "version", "document", "annotations"],
+  "properties": {
+    "format": { "const": "margin-annot" },
+    "version": { "type": "integer", "minimum": 1 },
+    "document": {
+      "type": "object",
+      "required": ["fileName", "sha256", "pageCount", "pages"],
+      "properties": {
+        "fileName": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "pageCount": { "type": "integer", "minimum": 1 },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["width", "height"],
+            "properties": {
+              "width": { "type": "number", "exclusiveMinimum": 0 },
+              "height": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/category" }
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "marginWidth": { "type": "number", "minimum": 0, "description": "Target margin width per side in pt. Default 150." },
+        "maxEnlargement": { "type": "number", "minimum": 1, "description": "Cap on the page enlargement factor. Default 1.3." },
+        "fontSize": { "type": "number", "minimum": 4, "maximum": 24, "description": "Comment font size in pt. Default 9." },
+        "leaderStyle": { "enum": ["full", "gutter"], "description": "Default full." },
+        "embedOriginal": { "type": "boolean", "description": "Attach the original PDF to exports. Default false." },
+        "crop": { "$ref": "#/$defs/interval", "description": "Manual horizontal crop [x0, x1] in original-page pt." }
+      }
+    },
+    "annotations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/annotation" }
+    },
+    "report": {
+      "type": "object",
+      "required": ["fileName", "sha256"],
+      "properties": {
+        "fileName": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "position": { "enum": ["before", "after"] }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[0-9a-hjkmnp-tv-z]{6}$", "description": "6-character lowercase Crockford base32 (no i, l, o, u)." },
+    "rect": {
+      "type": "array",
+      "description": "Axis-aligned rectangle [x0, y0, x1, y1].",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "interval": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "category": {
+      "type": "object",
+      "required": ["id", "name", "color", "kind"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+        "name": { "type": "string" },
+        "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "kind": { "enum": ["comment", "highlight"] },
+        "weight": { "type": "number", "minimum": 0 }
+      }
+    },
+    "quote": {
+      "type": "object",
+      "required": ["exact"],
+      "properties": {
+        "exact": { "type": "string", "minLength": 1 },
+        "prefix": { "type": "string" },
+        "suffix": { "type": "string" }
+      }
+    },
+    "textAnchor": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "text" },
+        "page": { "type": "integer", "minimum": 1 },
+        "quads": { "type": "array", "items": { "$ref": "#/$defs/rect" }, "minItems": 1 },
+        "quote": { "$ref": "#/$defs/quote" }
+      },
+      "anyOf": [{ "required": ["quads", "page"] }, { "required": ["quote"] }]
+    },
+    "regionAnchor": {
+      "type": "object",
+      "required": ["type", "page", "rect"],
+      "properties": {
+        "type": { "const": "region" },
+        "page": { "type": "integer", "minimum": 1 },
+        "rect": { "$ref": "#/$defs/rect" }
+      }
+    },
+    "annotation": {
+      "type": "object",
+      "required": ["category", "anchor"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "category": { "type": "string" },
+        "anchor": {
+          "if": { "type": "object", "required": ["type"], "properties": { "type": { "const": "region" } } },
+          "then": { "$ref": "#/$defs/regionAnchor" },
+          "else": { "$ref": "#/$defs/textAnchor" }
+        },
+        "body": { "type": "string" },
+        "side": { "enum": ["auto", "left", "right"] },
+        "origin": { "enum": ["human", "agent"] },
+        "reviewed": { "type": "boolean" },
+        "status": { "enum": ["ok", "unresolved", "ambiguous"] },
+        "created": { "$ref": "#/$defs/timestamp" },
+        "modified": { "$ref": "#/$defs/timestamp" }
+      }
+    }
+  }
+}
