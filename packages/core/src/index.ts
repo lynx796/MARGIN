@@ -8,3 +8,5 @@ export * from './math/index.ts';
 export * from './layout/index.ts';
 export * from './pipeline.ts';
 export * from './render-pdf/index.ts';
+export * from './ops.ts';
+export * from './check.ts';
