@@ -1,10 +1,10 @@
 # Margin — PDF Grading Annotator: Specification
 
-Nov 8, 2026 · @Lyn
+Nov 8, 2026 · Lyn
 
 ## 1. Overview
 
-Margin is a local-first web app for grading compiled LaTeX papers: it adds typed, colored, LaTeX-capable comments in widened page margins, lays them out automatically, and exports a flattened PDF. "Margin" is a working name.
+Margin is a local-first web app for grading compiled LaTeX papers: it adds typed, colored, LaTeX-capable comments in widened page margins, lays them out automatically, and exports a flattened PDF.
 
 ### Goals
 
@@ -154,26 +154,26 @@ All annotations of one PDF live in a sidecar file `<name>.annot.json`, plain JSO
   - `text`: `quads` + `quote` (W3C TextQuoteSelector semantics). Either may be omitted on input; the resolver (§9) fills the missing one.
   - `region`: `rect` only, for formulas, figures or whole proofs (rectangle selection).
 - **Body**: comment source in the comment markup (§6.1). Empty for categories with `kind: "highlight"`.
-- **Display numbers are not stored.** They are derived from reading order on every layout (§6.6). Cross-references use IDs: `\ref{<id>}`.
+- **Display numbers are not stored.** They are derived from reading order on every layout (§6.8). Cross-references use IDs: `\ref{<id>}`.
 - **side**: `auto` | `left` | `right`. `auto` lets the layout choose; the others pin a comment to a margin.
-- **origin**: `human` | `agent`. Agent-created comments are visually flagged in the UI until a human accepts them, which sets reviewed to true (§9.4).
+- **origin**: `human` | `agent`. Agent-created comments are visually flagged in the UI until a human accepts them, which sets `reviewed: true` (§9.4).
 - **status** (optional, written by the resolver): `ok` | `unresolved` (quote not found) | `ambiguous` (quote found more than once without disambiguating prefix/suffix or page).
-- **Categories**: user-defined, any number. `weight` feeds the layout objective (§6.4). A global default category set is stored in browser storage and copied into each new file, so a file is always self-contained.
+- **Categories**: user-defined, any number. `weight` feeds the layout objective (§6.5). A global default category set is stored in browser storage and copied into each new file, so a file is always self-contained.
 - **sha256** binds the file to one exact PDF. Opening a mismatching PDF shows a warning and offers re-anchoring by quote.
 - **Versioning**: `version` increases on breaking changes; `core/model` contains forward migrations. Unknown fields are preserved on load and save, so agents may add their own metadata under `x-*` keys.
 - **Serialization**: stable key order, two-space indentation, annotations sorted by (page, y, x). Diffs stay small and readable.
 
 ## 5. Page geometry
 
-Each output page is the original page enlarged uniformly by one document-wide factor k ≤ k\_max, with the content cropped horizontally to the text block and centered; content is scaled down only if the cap is reached.
+Each output page is the original page enlarged uniformly by one document-wide factor k ≤ k_max, with the content cropped horizontally to the text block and centered; content is scaled down only if the cap is reached.
 
 ### 5.1 Crop
 
-The horizontal content extent \[x₀, x₁\] is the union over all pages of the per-page ink bounding box. The ink box is found by rasterizing each page at 36 dpi and taking the extent of non-background pixels, which covers text, vector graphics and images alike. A padding p (default 8 pt) is added on both sides. The user can override the crop in settings. Vertically, nothing is cropped: headers, footers and page numbers stay. Let t = x₁ − x₀ + 2p.
+The horizontal content extent [x₀, x₁] is the union over all pages of the per-page ink bounding box. The ink box is found by rasterizing each page at 36 dpi and taking the extent of non-background pixels, which covers text, vector graphics and images alike. A padding p (default 8 pt) is added on both sides. The user can override the crop in settings. Vertically, nothing is cropped: headers, footers and page numbers stay. Let t = x₁ − x₀ + 2p.
 
 ### 5.2 Enlargement and scale
 
-With target margin width m per side (setting `marginWidth`, default 150 pt) and cap k\_max (setting `maxEnlargement`, default 1.3):
+With target margin width m per side (setting `marginWidth`, default 150 pt) and cap k_max (setting `maxEnlargement`, default 1.3):
 
 ```latex
 k = \min\Bigl(k_{\max},\ \max\bigl(1,\ \tfrac{t + 2m}{W}\bigr)\Bigr), \qquad s = \min\Bigl(1,\ \frac{kW - 2m}{t}\Bigr)
@@ -189,7 +189,7 @@ The left and right columns each have width
 w_{\text{col}} = \min\Bigl(w_{\max},\ \frac{kW - s\,t}{2} - g_{\text{out}}\Bigr)
 ```
 
-where g\_out is the outer page margin (default 18 pt) and w\_max = 1.3 m caps the line length for readability when there is surplus space. The vertical extent of each column is \[g\_out, kH − g\_out\]: comments may use the full page height, including the area beside the original top and bottom margins.
+where g_out is the outer page margin (default 18 pt) and w_max = 1.3 m caps the line length for readability when there is surplus space. The vertical extent of each column is [g_out, kH − g_out]: comments may use the full page height, including the area beside the original top and bottom margins.
 
 ### 5.4 Coordinate systems
 
@@ -232,7 +232,7 @@ Anything else is literal text. Unknown macros inside math are MathJax's concern;
 - Font: Fira Sans at `fontSize` (default 9 pt), line height 1.25 × fontSize, kerning on, no ligatures. Widths come from fontkit metrics, never from the DOM.
 - Math: MathJax 4 renders TeX to SVG with the `mathjax-fira` font at the comment font size. Width, height and depth are read from the SVG; glyphs are already paths. Results are cached by (TeX source, size). A TeX error renders the source in red monospace and sets a `mathError` flag shown in the UI; export still succeeds.
 - Line breaking: greedy first-fit over boxes (words, inline math, spaces as glue). Inline math is unbreakable; if wider than the line, it is scaled down to at most 70 %, then allowed to overflow into the padding. A later version may switch to Knuth–Plass; the interface does not change.
-- Box style: width = column width w\_col; padding 4 pt; a 2 pt left stripe in the category color; background in the category color at 8 % opacity; corner radius 2 pt. The display number sits top-right in 6.5 pt gray.
+- Box style: width = column width w_col; padding 4 pt; a 2 pt left stripe in the category color; background in the category color at 8 % opacity; corner radius 2 pt. The display number sits top-right in 6.5 pt gray.
 - The result per comment is its height hᵢ and a list of positioned primitives relative to the box origin.
 
 ### 6.3 Anchor marks
@@ -258,9 +258,9 @@ Order the comments of one column by their leader start height λᵢ (anchor line
 \min_{y \in \mathbb{R}^n} \sum_{i=1}^n w_i\,(y_i - a_i)^2 \quad \text{s.t.}\quad y_{i+1} \ge y_i + h_i + g,\quad y_1 \ge T,\quad y_n + h_n \le B
 ```
 
-with weights wᵢ from the category. Substituting cᵢ = Σ\_{j\<i}(hⱼ + g) and zᵢ = yᵢ − cᵢ turns the spacing constraints into z₁ ≤ … ≤ zₙ and the objective into Σ wᵢ (zᵢ − (aᵢ − cᵢ))², a weighted isotonic regression. The bound constraints become the constant box zᵢ ∈ \[T, B − hₙ − cₙ\] for all i, which is non-empty exactly when the column fits.
+with weights wᵢ from the category. Substituting cᵢ = Σ_{j<i}(hⱼ + g) and zᵢ = yᵢ − cᵢ turns the spacing constraints into z₁ ≤ … ≤ zₙ and the objective into Σ wᵢ (zᵢ − (aᵢ − cᵢ))², a weighted isotonic regression. The bound constraints become the constant box zᵢ ∈ [T, B − hₙ − cₙ] for all i, which is non-empty exactly when the column fits.
 
-Algorithm: run weighted pool-adjacent-violators (PAVA) on the targets aᵢ − cᵢ, clip every zᵢ to \[T, B − hₙ − cₙ\], set yᵢ = zᵢ + cᵢ. This is O(n) after sorting and exactly optimal, because clipping the isotonic solution to a constant interval yields the projection onto the intersection. A property test checks optimality against a QP solver on random instances.
+Algorithm: run weighted pool-adjacent-violators (PAVA) on the targets aᵢ − cᵢ, clip every zᵢ to [T, B − hₙ − cₙ], set yᵢ = zᵢ + cᵢ. This is O(n) after sorting and exactly optimal, because clipping the isotonic solution to a constant interval yields the projection onto the intersection. A property test checks optimality against a QP solver on random instances.
 
 ### 6.6 Leaders
 
@@ -342,7 +342,7 @@ The editor is CodeMirror 6 styled to look like the rendered box: same font, size
 
 ## 8. Export
 
-Export writes a new PDF in which every comment is flattened into the page content; the annotation file travels along as an embedded attachment so the PDF alone can be re-imported loss-free.
+Export writes a new PDF in which every comment is flattened into the page content; the annotation file travels along as an embedded attachment so the PDF can be re-imported loss-free.
 
 ### 8.1 Flattened PDF
 
@@ -352,7 +352,7 @@ Export writes a new PDF in which every comment is flattened into the page conten
 4. Text runs use the embedded, subsetted Fira Sans fonts. Math is drawn as vector paths from the MathJax SVG.
 5. Cross-references become internal GoTo links to the target box.
 6. Insert notes pages for spilled comments (§6.7).
-7. Set metadata: Title = original title (or file name), Producer = "Margin \<version>". No author field is copied unless the user enables it.
+7. Set metadata: Title = original title (or file name), Producer = "Margin <version>". No author field is copied unless the user enables it.
 
 Native PDF annotation objects are not created. Annotations already in the input PDF (links, existing comments) are dropped by `embedPage`; internal links of the original are not preserved in version 1.
 
@@ -368,7 +368,7 @@ The current `.annot.json` is always attached as `/EmbeddedFiles` entry `margin.a
 
 ### 8.4 Grading report
 
-A grading report written separately in LaTeX can be placed in front of the annotated pages. The report is optional: if none is attached (no \`report\` entry in the annotation file and no \`--report\` flag), export produces exactly the annotated paper, with no placeholder, blank or cover page and no warning.
+A grading report written separately in LaTeX can be placed in front of the annotated pages. The report is optional: if none is attached (no `report` entry in the annotation file and no `--report` flag), export produces exactly the annotated paper, with no placeholder, blank or cover page and no warning.
 
 - The annotation file stores a reference `report: { fileName, sha256, position: "before" | "after" }`, default `before`.
 - Web app: the user drops a compiled report PDF onto the document; it is kept in OPFS next to the paper. The browser does not compile LaTeX.
@@ -396,7 +396,7 @@ All commands accept `--json` for machine-readable output, print structured error
 | `margin resolve` | Fill missing quads from quotes and missing quotes from quads; set `status` |
 | `margin check` | Schema, unresolved anchors, math errors, dangling `\ref`, overflowed pages |
 | `margin render paper.pdf --pages 3 -o out/` | PNG per annotated page, for visual checks by multimodal agents |
-| `margin export paper.pdf [-o file]` | Flattened PDF (§8) |
+| `margin export paper.pdf [-o file] [--report file]` | Flattened PDF (§8) |
 | `margin pseudonymize`, `margin restore` | §10 |
 | `margin serve` | Local bridge (§9.3) |
 | `margin schema`, `margin agent-guide` | Print the JSON Schema; print a concise usage guide written for agents |
@@ -563,29 +563,62 @@ Every phase is done when its acceptance criteria pass in CI on both Firefox and 
 - [ ] Every UI operation on annotations has a CLI equivalent, and `margin apply` with 100 operations completes in under 2 s.
 - [ ] An agent following only `margin agent-guide` can add 10 quote-anchored comments to a fixture with zero unresolved anchors.
 - [ ] Pseudonymization leaves no term in any fixture (leak test) and restore reproduces the original anchors exactly.
+- [ ] Export without a grading report contains exactly the annotated pages.
 - [ ] The privacy E2E test passes with network inspection enabled.
 
 ## 13. Implementation phases
 
-Build in six phases, core and CLI first: the layout engine and every agent operation then exist and are tested before any UI is written.
+Build in six phases, core and CLI first: the layout engine and every agent operation then exist and are tested before any UI is written. Phases 1–3 give a usable grading tool; 4–6 complete it. Each phase starts with its tests and ends at its gate. Hand phases to the coding agent one at a time, with this spec and the repository's `AGENTS.md` in context.
 
-&#91;embedded content: implementation roadmap · 6 phases, each with an exit gate\]
+### Phase 1 · Core and CLI (no UI)
 
-Phases 1–3 give a usable grading tool; 4–6 complete it. Each phase starts with its tests and ends at its gate. Hand phases to the coding agent one at a time, with this spec and the repository's `AGENTS.md` in context.
+- Schema, PDF text with quads, anchoring, geometry, text and math layout, PAVA, leaders, numbering.
+- `render-pdf`; CLI: `init`, `read`, `add`, `edit`, `rm`, `apply`, `list`, `check`, `render`, `export`.
+- **Gate:** golden and property tests green; layout criteria of §12.3 met.
 
-## 14. Defaults and open questions
+### Phase 2 · Web editor MVP
 
-The defaults below were chosen so implementation can start; each is a setting or a small code change if you decide otherwise.
+- pdf.js viewer with SVG overlay, select → type → Enter, categories, CodeMirror with live math.
+- OPFS autosave, import and download, sidebar, settings dialog.
+- **Gate:** E2E green in Firefox and Chromium; overlay matches export within 1 px.
+
+### Phase 3 · Agent workflow
+
+- `margin serve` bridge (also serving the app) with live sync and merge, agent review UI, fuzzy quote resolver.
+- `margin agent-guide`; `AGENTS.md` finalized.
+- **Gate:** an agent adds 10 quote-anchored comments with zero unresolved anchors.
+
+### Phase 4 · Layout and export completeness
+
+- Overflow (font step-down, notes pages), cross-reference picker and PDF links, embedded annotation file, optional grading report.
+- Re-import of exported PDFs, Chromium file handles.
+- **Gate:** round-trip tests green; exports open correctly in four viewers.
+
+### Phase 5 · Pseudonymization
+
+- Term groups, matching, MuPDF redaction, metadata scrub, verification, review screen.
+- Mapping file, `margin pseudonymize` and `margin restore`.
+- **Gate:** leak tests green on all fixtures; restore reproduces anchors exactly.
+
+### Phase 6 · Deploy
+
+- PWA with service worker, CSP and SRI, Docker image with nginx.
+- **Gate:** privacy E2E test passes against the deployed site.
+
+## 14. Defaults and decisions
+
+The defaults below were chosen so implementation can start; each is a setting or a small code change if decided otherwise.
 
 | Decision | Default chosen |
 | --- | --- |
 | Margins | Both sides; side chosen by anchor position, overridable per comment |
-| Page size | Enlarged uniformly, cap k\_max = 1.3; content scaled down only beyond the cap |
+| Page size | Enlarged uniformly, cap k_max = 1.3; content scaled down only beyond the cap |
 | Output | Flattened comments only; no native PDF annotations |
 | Comment font | Fira Sans 9 pt, math in MathJax Fira |
 | Margin width | 150 pt per side |
 | Leader style | `full` (dotted through the line, solid in the gutter) |
 | Embedded original in export | Off (annotation file always embedded) |
+| Grading report | Optional; without one, export contains only the annotated paper |
 | License | AGPL-3.0 (forced by MuPDF.js if published) |
 | Browsers | Firefox and Chromium, current stable, desktop only |
 
@@ -595,5 +628,5 @@ Resolved questions:
 - **Categories**: typo, error, general remark, well done, highlight as defaults. Adding categories and changing colors must be quick: a "+" chip in the palette opens an inline form (name, color picker, kind), and clicking a chip's color swatch recolors it (§7.1).
 - **Embedded original**: off by default; the annotation file is always embedded (§8.2).
 - **Two-column papers**: nearest-margin rule; the gap between text columns is not used for comments (§6.4).
-- **Grading report**: a PDF (or, via the CLI, a `.tex` file) placed before the annotated pages (§8.4).
+- **Grading report**: optional; a PDF (or, via the CLI, a `.tex` file) placed before the annotated pages (§8.4).
 - **Hosting**: local use first through `margin serve`, which serves the app and the bridge on one address; later a Docker image behind nginx (§11).
