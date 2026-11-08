@@ -1,0 +1,48 @@
+% Fixture "mathheavy": theorem environments, display math, and a TikZ figure. Region anchors on
+% formulas and figures; ink detection must include the vector graphics (spec §5.1).
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,tikz}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\begin{document}
+\section{Fourier series}
+\begin{definition}
+For $f \in L^1(\mathbb{T})$ the Fourier coefficients are
+\[
+  \hat f(k) = \frac{1}{2\pi} \int_{-\pi}^{\pi} f(x)\, e^{-ikx}\, dx, \qquad k \in \mathbb{Z}.
+\]
+\end{definition}
+\begin{lemma}[Riemann--Lebesgue]
+If $f \in L^1(\mathbb{T})$ then $\hat f(k) \to 0$ as $|k| \to \infty$.
+\end{lemma}
+\begin{proof}
+For trigonometric polynomials the claim is trivial. For general $f$ choose a trigonometric
+polynomial $p$ with $\|f - p\|_1 < \varepsilon$; then $|\hat f(k)| \le |\hat p(k)| + \varepsilon$,
+and the first term vanishes for large $|k|$.
+\end{proof}
+\begin{theorem}[Parseval]
+For $f \in L^2(\mathbb{T})$,
+\begin{equation}
+  \frac{1}{2\pi}\int_{-\pi}^{\pi} |f(x)|^2\,dx = \sum_{k=-\infty}^{\infty} |\hat f(k)|^2 .
+\end{equation}
+\end{theorem}
+The partial sums $S_N f = \sum_{|k|\le N} \hat f(k) e^{ikx}$ converge in $L^2$, but pointwise
+convergence may fail; the figure shows the Gibbs phenomenon for a square wave.
+\begin{center}
+\begin{tikzpicture}[scale=1.1]
+  \draw[->] (-3.2,0) -- (3.4,0) node[right] {$x$};
+  \draw[->] (0,-1.5) -- (0,1.6) node[above] {$S_N f$};
+  \draw[thick,domain=-3.14:3.14,samples=200,smooth] plot (\x,
+    {1.2732*(sin(\x r) + sin(3*\x r)/3 + sin(5*\x r)/5 + sin(7*\x r)/7)});
+\end{tikzpicture}
+\end{center}
+\begin{align}
+  \|S_N f - f\|_2^2 &= \sum_{|k| > N} |\hat f(k)|^2 \\
+                    &\le \frac{1}{N^2} \sum_{k} k^2 |\hat f(k)|^2 = \frac{\|f'\|_2^2}{N^2}.
+\end{align}
+\end{document}

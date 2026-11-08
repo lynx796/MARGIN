@@ -1,0 +1,9 @@
+[
+  { "op": "add", "category": "remark", "quote": "Fourier coefficients", "body": "Normalization: some texts omit \\(\\frac{1}{2\\pi}\\)." },
+  { "op": "add", "category": "error", "quote": "the claim is trivial", "body": "Not trivial: \\(\\hat p(k) = 0\\) only for \\(|k| > \\deg p\\). Say so." },
+  { "op": "add", "category": "good", "quote": "Parseval", "body": "Correct statement." },
+  { "op": "add", "category": "remark", "quote": "Gibbs phenomenon", "body": "The overshoot is about 9 % of the jump: \\[ \\lim_{N\\to\\infty} \\max S_N f \\approx 1.0895 \\]" },
+  { "op": "add", "category": "error", "page": 1, "region": [205, 500, 400, 600], "body": "Label the axes with units and mark \\(\\pm\\pi\\).", "side": "right" },
+  { "op": "add", "category": "typo", "quote": "converge in", "body": "converge to \\(f\\) in" },
+  { "op": "add", "category": "hl", "quote": "pointwise convergence may fail" }
+]

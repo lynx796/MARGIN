@@ -1,0 +1,1247 @@
+{
+  "format": "margin-annot",
+  "version": 1,
+  "document": {
+    "fileName": "long.pdf",
+    "sha256": "31c90c42c6c89b191cb2c2b5ad82493d1d3a97e0c05c89e4b93855347cc063eb",
+    "pageCount": 20,
+    "pages": [
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 }
+    ]
+  },
+  "categories": [
+    { "id": "typo", "name": "Typo", "color": "#d97706", "kind": "comment", "weight": 1 },
+    { "id": "error", "name": "Error", "color": "#dc2626", "kind": "comment", "weight": 3 },
+    { "id": "remark", "name": "General remark", "color": "#2563eb", "kind": "comment", "weight": 2 },
+    { "id": "good", "name": "Well done", "color": "#16a34a", "kind": "comment", "weight": 1 },
+    { "id": "hl", "name": "Highlight", "color": "#facc15", "kind": "highlight", "weight": 0 }
+  ],
+  "settings": {
+    "marginWidth": 150,
+    "maxEnlargement": 1.3,
+    "fontSize": 9,
+    "leaderStyle": "full",
+    "embedOriginal": false
+  },
+  "annotations": [
+    {
+      "id": "mf23x6",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[236.22, 224.66, 302.49, 235.24]],
+        "quote": {
+          "exact": "sem. Nulla et",
+          "prefix": "leo. Cras viverra metus rhoncus ",
+          "suffix": " lectus vestibulum urna fringill"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "vrh4zw",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[216.41, 400.79, 331.45, 411.38]],
+        "quote": {
+          "exact": "urna. Nulla ullamcorper",
+          "prefix": "idiculus mus. Aliquam tincidunt ",
+          "suffix": " vestibulum turpis. Pellentesque"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "36scfg",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[254.95, 590.48, 369.66, 601.07]],
+        "quote": {
+          "exact": "platea dictumst. Integer",
+          "prefix": "ipiscing elit. In hac habitasse ",
+          "suffix": " tempus convallis augue. Etiam f"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "a91x89",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 2,
+        "quads": [[231.14, 200.31, 320.12, 210.89]],
+        "quote": {
+          "exact": "vehicula libero dui",
+          "prefix": ", justo lectus sagittis dui, et ",
+          "suffix": " cursus dui. Mauris tempor ligul"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "w9r490",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 2,
+        "quads": [[216.92, 403.54, 318.22, 414.13]],
+        "quote": {
+          "exact": "urna porta tincidunt.",
+          "prefix": "ue non elit. Fusce sed justo eu ",
+          "suffix": " Mauris felis odio, sollicitudin"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "zzhw4z",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 2,
+        "quads": [[215.17, 566.13, 292.46, 576.72]],
+        "quote": {
+          "exact": "lacinia sit amet,",
+          "prefix": "uspendisse eu lectus. Ut mi mi, ",
+          "suffix": " placerat et, mollis vitae, dui."
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "e7845x",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 3,
+        "quads": [[244.88, 200.31, 344.95, 210.89]],
+        "quote": {
+          "exact": "eros tellus scelerisque",
+          "prefix": " pede consequat laoreet varius, ",
+          "suffix": " quam, pellentesque hendrerit ip"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "1453ha",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 3,
+        "quads": [[255.5, 417.09, 347.17, 427.68]],
+        "quote": {
+          "exact": "facilisis lacinia dui.",
+          "prefix": "nec dolor. Etiam euismod. Fusce ",
+          "suffix": " Suspendisse potenti. In mi erat"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "0n5hh2",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 3,
+        "quads": [[238.42, 579.68, 328.48, 590.27]],
+        "quote": {
+          "exact": "Maecenas urna mi,",
+          "prefix": " enim vel sapien. Donec congue. ",
+          "suffix": " suscipit in, placerat ut, vesti"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "efd1qq",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 4,
+        "quads": [[249.95, 200.31, 347.58, 210.89]],
+        "quote": {
+          "exact": "eget vulputate ligula",
+          "prefix": ", nunc lectus elementum mauris, ",
+          "suffix": " tellus eu neque. Vivamus eu dol"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "2xrzdt",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 4,
+        "quads": [[201.88, 389.99, 294.17, 400.58]],
+        "quote": {
+          "exact": "nisl cursus tempor.",
+          "prefix": "t pede. Vivamus eget turpis sed ",
+          "suffix": " Curabitur mollis sapien condime"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "k8q8q5",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 4,
+        "quads": [[224.16, 579.68, 329.53, 590.27]],
+        "quote": {
+          "exact": "wisi luctus bibendum.",
+          "prefix": "eque id dolor. Donec et nisl at ",
+          "suffix": " Nam interdum tellus ac libero. "
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "yqk3fa",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 5,
+        "quads": [[258.8, 200.31, 329.92, 210.89]],
+        "quote": {
+          "exact": "sit amet mattis",
+          "prefix": "tus. Vestibulum faucibus, metus ",
+          "suffix": " rhoncus, sapien dui laoreet odi"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "3vpcd8",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 5,
+        "quads": [[250.66, 389.99, 337.19, 400.58]],
+        "quote": {
+          "exact": "lacus. Morbi lacus",
+          "prefix": "odio. Vestibulum luctus commodo ",
+          "suffix": " dui, tempor sed, euismod eget, "
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "ktgpz0",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 5,
+        "quads": [[235.37, 579.68, 308.22, 590.27]],
+        "quote": {
+          "exact": "in lacus sagittis",
+          "prefix": "lestie a, augue. Donec vel pede ",
+          "suffix": " porta. Sed hendrerit ipsum quis"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "5n11bc",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 6,
+        "quads": [[251, 213.86, 314.82, 224.44]],
+        "quote": {
+          "exact": "elit. Morbi et",
+          "prefix": "cursus. Mauris bibendum pede at ",
+          "suffix": " felis a lectus interdum facilis"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "nxk18f",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 6,
+        "quads": [[223.25, 403.54, 292.69, 414.13]],
+        "quote": {
+          "exact": "tellus purus ac",
+          "prefix": "ien tempor lectus, quis pretium ",
+          "suffix": " quam. Nulla facilisi. Duis aliq"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "kx7k0b",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 6,
+        "quads": [[252.33, 566.13, 354.96, 576.72]],
+        "quote": {
+          "exact": "Aenean turpis metus,",
+          "prefix": "o at felis tincidunt consequat. ",
+          "suffix": " malesuada sed, condimentum sit "
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "6tg690",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 7,
+        "quads": [[222.43, 213.86, 337.55, 224.44]],
+        "quote": {
+          "exact": "sem ullamcorper cursus.",
+          "prefix": "ero. Aenean gravida lorem vitae ",
+          "suffix": " Nunc adipiscing rutrum ante. Nu"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "79gqr7",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 7,
+        "quads": [[231.35, 403.54, 328.99, 414.13]],
+        "quote": {
+          "exact": "suscipit, convallis ut,",
+          "prefix": "corper. Duis nisl nibh, laoreet ",
+          "suffix": " rutrum id, enim. Phasellus odio"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "324gk6",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 7,
+        "quads": [[250.99, 579.68, 375.81, 590.27]],
+        "quote": {
+          "exact": "Duis malesuada interdum",
+          "prefix": "is egestas. Phasellus id magna. ",
+          "suffix": " arcu. Integer metus. Morbi pulv"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "3say78",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 8,
+        "quads": [[228.02, 227.4, 322.75, 237.99]],
+        "quote": {
+          "exact": "Nulla varius. Etiam",
+          "prefix": "culus mus. Etiam sit amet erat. ",
+          "suffix": " tincidunt dui vitae turpis. Don"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "nq67bm",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 8,
+        "quads": [[222.21, 403.54, 332.4, 414.13]],
+        "quote": {
+          "exact": "sollicitudin pede. Fusce",
+          "prefix": "vestibulum metus. Nulla iaculis ",
+          "suffix": " luctus tellus in dolor. Curabit"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "yra1gs",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 8,
+        "quads": [[232.4, 566.13, 325.88, 576.72]],
+        "quote": {
+          "exact": "Quisque tortor felis,",
+          "prefix": "tus dictum tempus. Nam ut wisi. ",
+          "suffix": " interdum ac, sodales a, semper "
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "tvb9ms",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 9,
+        "quads": [[231.16, 200.31, 300.9, 210.89]],
+        "quote": {
+          "exact": "vitae risus. In",
+          "prefix": "met, urna. Mauris faucibus odio ",
+          "suffix": " nisl. Praesent purus. Integer i"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "e96d39",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 9,
+        "quads": [[235.48, 403.54, 356.75, 414.13]],
+        "quote": {
+          "exact": "Sed accumsan sollicitudin",
+          "prefix": "gna nec wisi. Mauris convallis. ",
+          "suffix": " massa. Sed id enim. Nunc pede e"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "cs0355",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 9,
+        "quads": [[172.87, 579.68, 260.62, 590.27]],
+        "quote": {
+          "exact": "viverra ac, tempus",
+          "prefix": "rabitur diam tortor, mollis et, ",
+          "suffix": " vel, metus. Curabitur ac lorem."
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "paxdg6",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 10,
+        "quads": [[317.25, 200.31, 417.93, 210.89]],
+        "quote": {
+          "exact": "ut, sapien. Maecenas",
+          "prefix": "quis, fermentum quis, tincidunt ",
+          "suffix": " sem. Curabitur eros odio, inter"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "npsa8p",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 10,
+        "quads": [[266.55, 389.99, 377.11, 400.58]],
+        "quote": {
+          "exact": "id feugiat consectetuer,",
+          "prefix": "nim. Phasellus fringilla, metus ",
+          "suffix": " lacus wisi ultrices tellus, qui"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "7ykb88",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 10,
+        "quads": [[237.67, 566.13, 360.92, 576.72]],
+        "quote": {
+          "exact": "dapibus vitae, sollicitudin",
+          "prefix": ", dolor. Praesent lacus mauris, ",
+          "suffix": " sit amet, nonummy eget, ligula."
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "ab7ge1",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 11,
+        "quads": [[217.95, 200.31, 315.46, 210.89]],
+        "quote": {
+          "exact": "tortor. Quisque erat",
+          "prefix": "urpis justo et lacus. Nulla vel ",
+          "suffix": " elit, viverra sit amet, sagitti"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "2ak83r",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 11,
+        "quads": [[205.25, 389.99, 287.95, 400.58]],
+        "quote": {
+          "exact": "vel risus pharetra",
+          "prefix": "rnare dignissim mi. Duis a urna ",
+          "suffix": " imperdiet. Suspendisse potenti."
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "ghff1r",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 11,
+        "quads": [[247.3, 566.13, 339.47, 576.72]],
+        "quote": {
+          "exact": "enim dolor pretium",
+          "prefix": "erdum, nunc eu semper eleifend, ",
+          "suffix": " elit, ut commodo ligula nisl a "
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "gvwe7r",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 12,
+        "quads": [[218.75, 213.86, 296.93, 224.44]],
+        "quote": {
+          "exact": "congue, velit leo",
+          "prefix": " Cras fermentum, felis in porta ",
+          "suffix": " facilisis odio, vitae consectet"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "hnzg6r",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 12,
+        "quads": [[234.95, 389.99, 369.14, 400.58]],
+        "quote": {
+          "exact": "vulputate quam. Maecenas",
+          "prefix": "ravida ante. Phasellus placerat ",
+          "suffix": " at tellus. Pellentesque neque d"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "ga1j3w",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 12,
+        "quads": [[201.57, 579.68, 313.34, 590.27]],
+        "quote": {
+          "exact": "Vestibulum est. Lorem",
+          "prefix": "nar id, gravida sit amet, erat. ",
+          "suffix": " ipsum dolor sit amet, consectet"
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "2nwyzz",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 13,
+        "quads": [[262.47, 200.31, 361.89, 210.89]],
+        "quote": {
+          "exact": "arcu. Cras venenatis",
+          "prefix": " velit. Morbi tincidunt posuere ",
+          "suffix": " est vitae dolor. Vivamus sceler"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "9kghkp",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 13,
+        "quads": [[209.16, 403.54, 333.21, 414.13]],
+        "quote": {
+          "exact": "ipsum. Quisque tincidunt",
+          "prefix": "Aliquam erat volutpat. Nulla ut ",
+          "suffix": " auctor augue. Nunc imperdiet ip"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "k0bkkv",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 13,
+        "quads": [[232.56, 579.68, 313, 590.27]],
+        "quote": {
+          "exact": "convallis, wisi sit",
+          "prefix": ", egestas sit amet, lorem. Duis ",
+          "suffix": " amet mollis molestie, libero ma"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "r2nnn1",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 14,
+        "quads": [[192.77, 200.31, 322.47, 210.89]],
+        "quote": {
+          "exact": "ultrices placerat, adipiscing",
+          "prefix": "que diam magna, ultricies eget, ",
+          "suffix": " rutrum, sem. Morbi sem. Nulla f"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "d6gtq8",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 14,
+        "quads": [[211.08, 389.99, 291.37, 400.58]],
+        "quote": {
+          "exact": "In fringilla turpis",
+          "prefix": "rmentum eu, velit. Sed in orci. ",
+          "suffix": " non arcu. Donec in ante. Phasel"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "xz3t46",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 14,
+        "quads": [[208.58, 566.13, 312.25, 576.72]],
+        "quote": {
+          "exact": "sed, lectus. Phasellus",
+          "prefix": "liquet vitae, porta in, aliquet ",
+          "suffix": " sodales. Ut varius scelerisque "
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "wt9p7y",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 15,
+        "quads": [[259.35, 200.31, 355.26, 210.89]],
+        "quote": {
+          "exact": "et, nibh. Phasellus",
+          "prefix": "la eget, interdum id, facilisis ",
+          "suffix": " at purus et libero lacinia dict"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "eg754s",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 15,
+        "quads": [[231.74, 403.54, 319.73, 414.13]],
+        "quote": {
+          "exact": "turpis egestas. Sed",
+          "prefix": " et netus et malesuada fames ac ",
+          "suffix": " in massa. Class aptent taciti s"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "wv9kk0",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 15,
+        "quads": [[229.51, 579.68, 363.04, 590.27]],
+        "quote": {
+          "exact": "porta dignissim vestibulum,",
+          "prefix": "onsequat quam. Ut auctor, augue ",
+          "suffix": " arcu diam lobortis velit, vel s"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "asqm3f",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 16,
+        "quads": [[264.7, 213.86, 366.28, 224.44]],
+        "quote": {
+          "exact": "cubilia Curae; Integer",
+          "prefix": "orci luctus et ultrices posuere ",
+          "suffix": " ipsum lectus, fermentum ac, mal"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "83hdv4",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 16,
+        "quads": [[238.27, 389.99, 329.1, 400.58]],
+        "quote": {
+          "exact": "lacinia et, tristique",
+          "prefix": "us erat. Curabitur magna felis, ",
+          "suffix": " id, ultrices ut, mauris. Suspen"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "7txxj2",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 16,
+        "quads": [[272.65, 566.13, 343.38, 576.72]],
+        "quote": {
+          "exact": "eu, tempus id,",
+          "prefix": "ugue. Aenean velit sem, viverra ",
+          "suffix": " rutrum id, mi. Nullam nec nibh."
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "rpt32z",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 17,
+        "quads": [[230.58, 213.86, 352.91, 224.44]],
+        "quote": {
+          "exact": "accumsan pulvinar, quam",
+          "prefix": ", velit. Aenean ornare, massa a ",
+          "suffix": " lorem laoreet purus, eu sodales"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "a37r44",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 17,
+        "quads": [[240.51, 403.54, 330.29, 414.13]],
+        "quote": {
+          "exact": "facilisis odio augue",
+          "prefix": "s, eros enim cursus arcu, vitae ",
+          "suffix": " vitae orci. Aliquam varius nibh"
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "dxtv0a",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 17,
+        "quads": [[239.19, 566.13, 308.84, 576.72]],
+        "quote": {
+          "exact": "et, aliquet vel,",
+          "prefix": ". Etiam sapien neque, convallis ",
+          "suffix": " auctor non, arcu. Aliquam susci"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "v92rff",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 18,
+        "quads": [[242.7, 213.86, 301.01, 224.44]],
+        "quote": {
+          "exact": "vitae pede a",
+          "prefix": " ligula enim eget nisl. Quisque ",
+          "suffix": " pede aliquet suscipit. Phasellu"
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "yjp3ed",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 18,
+        "quads": [[225.14, 389.99, 358.88, 400.58]],
+        "quote": {
+          "exact": "congue condimentum, ligula",
+          "prefix": "em. Mauris consequat, risus nec ",
+          "suffix": " ligula suscipit urna, vitae por"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "079d03",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 18,
+        "quads": [[179.58, 579.68, 239.01, 590.27]],
+        "quote": {
+          "exact": "quis dolor in",
+          "prefix": "nec, fringilla eget, leo. Etiam ",
+          "suffix": " sapien porttitor imperdiet. Cra"
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "xggykz",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 19,
+        "quads": [[209.71, 200.31, 280.85, 210.89]],
+        "quote": {
+          "exact": "sodales sem sit",
+          "prefix": "isse molestie. Duis in ante. Ut ",
+          "suffix": " amet mauris. Suspendisse ornare"
+        }
+      },
+      "body": "Short remark.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "65nnma",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 19,
+        "quads": [[267.46, 389.99, 338.17, 400.58]],
+        "quote": {
+          "exact": "ut, nunc. Nam",
+          "prefix": "t amet, tristique vitae, tempor ",
+          "suffix": " non ligula non lorem convallis "
+        }
+      },
+      "body": "This sentence needs a citation; which source do you rely on here?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "s32881",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 19,
+        "quads": [[255.26, 566.13, 335.81, 576.72]],
+        "quote": {
+          "exact": "dolor. Morbi est",
+          "prefix": "esuada. Vivamus dictum massa at ",
+          "suffix": " nulla, faucibus ac, posuere in,"
+        }
+      },
+      "body": "The estimate \\(\\|u\\|_{L^2} \\le C \\|\\nabla u\\|_{L^2}\\) requires zero boundary values, which you never assume. State the hypothesis.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "th1fbd",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 20,
+        "quads": [[195.54, 132.56, 307.23, 143.14]],
+        "quote": {
+          "exact": "dapibus urna bibendum",
+          "prefix": "Sed nec ipsum ",
+          "suffix": " lobortis. Vestibulum elit. Nam "
+        }
+      },
+      "body": "Typo.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "c8sxrz",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 20,
+        "quads": [[257.42, 146.11, 328.11, 156.69]],
+        "quote": {
+          "exact": "eu, lobortis ac,",
+          "prefix": "la arcu, volutpat eget, lacinia ",
+          "suffix": " urna. Nam mollis ultrices nulla"
+        }
+      },
+      "body": "**Good.** Clear and correct.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "6b0fzd",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 20,
+        "quads": [[264.59, 159.66, 313.14, 170.24]],
+        "quote": {
+          "exact": "at risus at",
+          "prefix": "la. Cras vulputate. Suspendisse ",
+          "suffix": " metus pulvinar malesuada. Nulla"
+        }
+      },
+      "body": "Unclear: \\[ \\sum_{k=1}^{n} \\binom{n}{k} x^k (1-x)^{n-k} \\] should include \\(k = 0\\). Please check the indices in the whole paragraph.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    }
+  ]
+}

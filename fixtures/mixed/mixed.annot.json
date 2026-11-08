@@ -1,0 +1,90 @@
+{
+  "format": "margin-annot",
+  "version": 1,
+  "document": {
+    "fileName": "mixed.pdf",
+    "sha256": "56556e550f4301f964dc16682a92a9b08466b8554b7f741668b195ba15c41a2b",
+    "pageCount": 3,
+    "pages": [
+      { "width": 595.28, "height": 841.89 },
+      { "width": 841.89, "height": 595.28 },
+      { "width": 419.53, "height": 595.28 }
+    ]
+  },
+  "categories": [
+    { "id": "typo", "name": "Typo", "color": "#d97706", "kind": "comment", "weight": 1 },
+    { "id": "error", "name": "Error", "color": "#dc2626", "kind": "comment", "weight": 3 },
+    { "id": "remark", "name": "General remark", "color": "#2563eb", "kind": "comment", "weight": 2 },
+    { "id": "good", "name": "Well done", "color": "#16a34a", "kind": "comment", "weight": 1 },
+    { "id": "hl", "name": "Highlight", "color": "#facc15", "kind": "highlight", "weight": 0 }
+  ],
+  "settings": {
+    "marginWidth": 150,
+    "maxEnlargement": 1.3,
+    "fontSize": 9,
+    "leaderStyle": "full",
+    "embedOriginal": false
+  },
+  "annotations": [
+    {
+      "id": "mf23x6",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[236.92, 156.91, 357.36, 167.49]],
+        "quote": {
+          "exact": "standard A4 portrait size",
+          "prefix": "it page This first page has the ",
+          "suffix": ". The grader comments on this se"
+        }
+      },
+      "body": "Portrait.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "vrh4zw",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 2,
+        "quads": [[339.48, 156.91, 385.64, 167.49]],
+        "quote": {
+          "exact": "landscape",
+          "prefix": "ble would go here. This page is ",
+          "suffix": ", so its width is the largest in"
+        }
+      },
+      "body": "Landscape: the widest page sets \\(k\\).",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "36scfg",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 3,
+        "quads": [[219.8, 156.91, 316.65, 167.49]],
+        "quote": {
+          "exact": "short closing remark",
+          "prefix": "Small page An A5 page with a ",
+          "suffix": ". 3"
+        }
+      },
+      "body": "A5 page.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    }
+  ]
+}

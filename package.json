@@ -13,9 +13,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "margin": "node packages/cli/bin/margin.js",
-    "fixtures:build": "scripts/build-fixtures.sh"
+    "fixtures:build": "scripts/build-fixtures.sh",
+    "golden:update": "GOLDEN_UPDATE=1 vitest run packages/cli/test/golden.test.ts",
+    "fixtures:annotate": "scripts/build-fixture-annotations.sh"
   },
   "devDependencies": {
+    "@margin/core": "workspace:*",
     "@types/node": "^26.6.6",
     "fast-check": "^4.10.2",
     "tsx": "^4.23.15",

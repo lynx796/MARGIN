@@ -1,0 +1,5 @@
+[
+  { "op": "add", "category": "remark", "quote": "standard A4 portrait size", "body": "Portrait." },
+  { "op": "add", "category": "remark", "page": 2, "quote": "landscape", "body": "Landscape: the widest page sets \\(k\\)." },
+  { "op": "add", "category": "typo", "quote": "short closing remark", "body": "A5 page." }
+]

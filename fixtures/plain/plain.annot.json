@@ -1,0 +1,204 @@
+{
+  "format": "margin-annot",
+  "version": 1,
+  "document": {
+    "fileName": "plain.pdf",
+    "sha256": "3d6461952b8e19d200b994b357cbcacf2dd5e472179006abe2e1541f19aadae0",
+    "pageCount": 2,
+    "pages": [
+      { "width": 595.28, "height": 841.89 },
+      { "width": 595.28, "height": 841.89 }
+    ]
+  },
+  "categories": [
+    { "id": "typo", "name": "Typo", "color": "#d97706", "kind": "comment", "weight": 1 },
+    { "id": "error", "name": "Error", "color": "#dc2626", "kind": "comment", "weight": 3 },
+    { "id": "remark", "name": "General remark", "color": "#2563eb", "kind": "comment", "weight": 2 },
+    { "id": "good", "name": "Well done", "color": "#16a34a", "kind": "comment", "weight": 1 },
+    { "id": "hl", "name": "Highlight", "color": "#facc15", "kind": "highlight", "weight": 0 }
+  ],
+  "settings": {
+    "marginWidth": 150,
+    "maxEnlargement": 1.3,
+    "fontSize": 9,
+    "leaderStyle": "full",
+    "embedOriginal": false
+  },
+  "annotations": [
+    {
+      "id": "36scfg",
+      "category": "hl",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[233.57, 290.61, 402.12, 301.2]],
+        "quote": {
+          "exact": "efficient computation of fixed points",
+          "prefix": "e on its interior. We study the ",
+          "suffix": "; the affine case is trivial, bu"
+        }
+      },
+      "body": "",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "zzhw4z",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[233.57, 290.61, 332.73, 301.2]],
+        "quote": {
+          "exact": "efficient computation",
+          "prefix": "e on its interior. We study the ",
+          "suffix": " of fixed points; the affine cas"
+        }
+      },
+      "body": "Which algorithm?",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "e7845x",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[273.06, 290.61, 402.12, 301.2]],
+        "quote": {
+          "exact": "computation of fixed points",
+          "prefix": "nterior. We study the efficient ",
+          "suffix": "; the affine case is trivial, bu"
+        }
+      },
+      "body": "Overlapping anchor: drawn one level lower.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "vrh4zw",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[426.5, 304.16, 450.61, 314.74]],
+        "quote": {
+          "exact": "fluffy",
+          "prefix": "t. In Müller’s earlier work the ",
+          "suffix": " notion of a “nice” function was"
+        }
+      },
+      "body": "Informal; say *vague*.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "mf23x6",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[182.13, 331.26, 258.66, 341.84]],
+        "quote": {
+          "exact": "is continuous on",
+          "prefix": " which we now remedy. The map f ",
+          "suffix": " the closed interval only"
+        }
+      },
+      "body": "Only on \\((0,1]\\): \\(f(0)\\) is not defined. Compare the theorem below.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "a91x89",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[444.98, 389.84, 484.45, 400.42], [125.8, 403.39, 219.51, 413.97]],
+        "quote": {
+          "exact": "intermediate value theorem",
+          "prefix": "(0) ≥ 0 and g(1) ≤ 0, so by the ",
+          "suffix": " there is x∗ with g(x∗) = 0. A c"
+        }
+      },
+      "body": "**Nice**, and the right tool:\n\\[ g(0) \\ge 0 \\ge g(1) \\implies \\exists x^\\ast\\colon g(x^\\ast) = 0 \\]",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "w9r490",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[412.04, 453, 471.75, 463.59]],
+        "quote": {
+          "exact": "right margin",
+          "prefix": "d internationalization near the ",
+          "suffix": " of the paragraph. Z 1 0 f(x) dx"
+        }
+      },
+      "body": "Consider \\(\\mathbb{R}^n\\) and maps \\(\\varphi\\colon X \\to Y\\) as well.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "1453ha",
+      "category": "error",
+      "anchor": {
+        "type": "region",
+        "page": 1,
+        "rect": [228, 595, 438, 640]
+      },
+      "body": "The sum should start at \\(n = 0\\).",
+      "side": "left",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "0n5hh2",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 2,
+        "quads": [[155.33, 170.46, 207.07, 181.04]],
+        "quote": {
+          "exact": "The map f",
+          "prefix": "that are not on the first page. ",
+          "suffix": " is mentioned once more here. 2"
+        }
+      },
+      "body": "Pinned to the left margin.",
+      "side": "left",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    }
+  ]
+}

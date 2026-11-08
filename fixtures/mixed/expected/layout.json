@@ -1,0 +1,379 @@
+{
+ "pages": [
+  {
+   "page": 1,
+   "width": 595.28,
+   "height": 841.89,
+   "fontSize": 9,
+   "overflow": [],
+   "prims": [
+    {
+     "type": "path",
+     "id": "mf23x6",
+     "layer": "over",
+     "d": "M229.56 166.59L350 166.59",
+     "stroke": "#2563eb",
+     "strokeWidth": 1
+    },
+    {
+     "type": "path",
+     "id": "mf23x6",
+     "layer": "over",
+     "d": "M229.56 166.59L118.64 166.59",
+     "stroke": "#2563eb",
+     "strokeWidth": 0.6,
+     "dash": [
+      0.6,
+      1.2
+     ]
+    },
+    {
+     "type": "path",
+     "id": "mf23x6",
+     "layer": "over",
+     "d": "M118.64 166.59L110.64 166.59",
+     "stroke": "#2563eb",
+     "strokeWidth": 0.6
+    },
+    {
+     "type": "rect",
+     "id": "mf23x6",
+     "layer": "over",
+     "x": 18,
+     "y": 152.765,
+     "w": 92.64,
+     "h": 19.25,
+     "fill": "#2563eb",
+     "fillOpacity": 0.08,
+     "radius": 2
+    },
+    {
+     "type": "rect",
+     "id": "mf23x6",
+     "layer": "over",
+     "x": 18,
+     "y": 152.765,
+     "w": 2,
+     "h": 19.25,
+     "fill": "#2563eb"
+    },
+    {
+     "type": "glyphRun",
+     "id": "mf23x6",
+     "layer": "over",
+     "font": "sans",
+     "size": 6.5,
+     "color": "#6b7280",
+     "x": 103.825,
+     "y": 161.64,
+     "text": "1",
+     "advances": [
+      2.815
+     ]
+    },
+    {
+     "type": "glyphRun",
+     "id": "mf23x6",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 165.09,
+     "text": "Portrait.",
+     "advances": [
+      5.049,
+      5.256,
+      3.564,
+      3.249,
+      3.294,
+      4.896,
+      2.538,
+      3.249,
+      2.16
+     ]
+    }
+   ]
+  },
+  {
+   "page": 2,
+   "width": 841.89,
+   "height": 595.28,
+   "fontSize": 9,
+   "overflow": [],
+   "prims": [
+    {
+     "type": "path",
+     "id": "vrh4zw",
+     "layer": "over",
+     "d": "M455.425 166.59L501.585 166.59",
+     "stroke": "#2563eb",
+     "strokeWidth": 1
+    },
+    {
+     "type": "path",
+     "id": "vrh4zw",
+     "layer": "over",
+     "d": "M501.585 166.59L599.945 166.59",
+     "stroke": "#2563eb",
+     "strokeWidth": 0.6,
+     "dash": [
+      0.6,
+      1.2
+     ]
+    },
+    {
+     "type": "path",
+     "id": "vrh4zw",
+     "layer": "over",
+     "d": "M599.945 166.59L628.89 166.59",
+     "stroke": "#2563eb",
+     "strokeWidth": 0.6
+    },
+    {
+     "type": "rect",
+     "id": "vrh4zw",
+     "layer": "over",
+     "x": 628.89,
+     "y": 152.765,
+     "w": 195,
+     "h": 19.25,
+     "fill": "#2563eb",
+     "fillOpacity": 0.08,
+     "radius": 2
+    },
+    {
+     "type": "rect",
+     "id": "vrh4zw",
+     "layer": "over",
+     "x": 628.89,
+     "y": 152.765,
+     "w": 2,
+     "h": 19.25,
+     "fill": "#2563eb"
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans",
+     "size": 6.5,
+     "color": "#6b7280",
+     "x": 816.673,
+     "y": 161.64,
+     "text": "2",
+     "advances": [
+      3.218
+     ]
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 634.89,
+     "y": 165.09,
+     "text": "Landscape: the widest page sets",
+     "advances": [
+      4.482,
+      4.896,
+      5.274,
+      5.382,
+      4.203,
+      4.302,
+      4.896,
+      5.346,
+      4.95,
+      2.16,
+      2.385,
+      3.249,
+      5.274,
+      4.95,
+      2.385,
+      6.453,
+      2.538,
+      5.382,
+      4.95,
+      4.203,
+      3.249,
+      2.385,
+      5.346,
+      4.896,
+      4.59,
+      4.95,
+      2.385,
+      4.203,
+      4.95,
+      3.249,
+      4.203
+     ]
+    },
+    {
+     "type": "svg",
+     "id": "vrh4zw",
+     "layer": "over",
+     "x": 769.341,
+     "y": 165.09,
+     "scale": 0.009,
+     "paths": [
+      "M253 -750L161 -739L57 0L148 0L192 -316C237 -419 307 -466 363 -466C399 -466 420 -446 420 -409C420 -336 369 -292 245 -257L371 0L473 0L354 -233C464 -268 517 -336 517 -419C517 -489 464 -539 389 -539C323 -539 259 -506 209 -435Z"
+     ],
+     "color": "#1a1a1a"
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 774.246,
+     "y": 165.09,
+     "text": ".",
+     "advances": [
+      2.16
+     ]
+    }
+   ]
+  },
+  {
+   "page": 3,
+   "width": 419.53,
+   "height": 595.28,
+   "fontSize": 9,
+   "overflow": [],
+   "prims": [
+    {
+     "type": "path",
+     "id": "36scfg",
+     "layer": "over",
+     "d": "M124.565 166.59L221.415 166.59",
+     "stroke": "#d97706",
+     "strokeWidth": 1
+    },
+    {
+     "type": "path",
+     "id": "36scfg",
+     "layer": "over",
+     "d": "M124.565 166.59L30.765 166.59",
+     "stroke": "#d97706",
+     "strokeWidth": 0.6,
+     "dash": [
+      0.6,
+      1.2
+     ]
+    },
+    {
+     "type": "path",
+     "id": "36scfg",
+     "layer": "over",
+     "d": "M30.765 166.59L22.765 166.59",
+     "stroke": "#d97706",
+     "strokeWidth": 0.6
+    },
+    {
+     "type": "rect",
+     "id": "36scfg",
+     "layer": "over",
+     "x": 18,
+     "y": 152.765,
+     "w": 4.765,
+     "h": 53,
+     "fill": "#d97706",
+     "fillOpacity": 0.08,
+     "radius": 2
+    },
+    {
+     "type": "rect",
+     "id": "36scfg",
+     "layer": "over",
+     "x": 18,
+     "y": 152.765,
+     "w": 2,
+     "h": 53,
+     "fill": "#d97706"
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 6.5,
+     "color": "#6b7280",
+     "x": 15.521,
+     "y": 161.64,
+     "text": "3",
+     "advances": [
+      3.244
+     ]
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 165.09,
+     "text": "A5",
+     "advances": [
+      5.157,
+      4.509
+     ]
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 176.34,
+     "text": "p",
+     "advances": [
+      5.346
+     ]
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 187.59,
+     "text": "ag",
+     "advances": [
+      4.896,
+      4.59
+     ]
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 198.84,
+     "text": "e.",
+     "advances": [
+      4.95,
+      2.16
+     ]
+    }
+   ]
+  }
+ ],
+ "numbers": {
+  "mf23x6": 1,
+  "vrh4zw": 2,
+  "36scfg": 3
+ }
+}

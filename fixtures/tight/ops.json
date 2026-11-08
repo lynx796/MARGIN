@@ -1,0 +1,8 @@
+[
+  { "op": "add", "category": "good", "quote": "completeness axiom", "body": "Correct starting point." },
+  { "op": "add", "category": "remark", "quote": "is not an upper bound", "body": "By definition of the supremum." },
+  { "op": "add", "category": "error", "quote": "for all", "suffix": " n", "body": "Write \\(0 \\le s - a_n < \\varepsilon\\); the absolute value hides the sign." },
+  { "op": "add", "category": "typo", "quote": "applying this to", "body": "to the sequence" },
+  { "op": "add", "category": "good", "quote": "alternating series test", "body": "**Yes.** Also state that \\(1/\\sqrt n\\) is monotone." },
+  { "op": "add", "category": "remark", "quote": "harmonic series", "body": "\\(\\frac{1}{\\sqrt n} \\ge \\frac1n\\) for \\(n\\ge1\\)." }
+]

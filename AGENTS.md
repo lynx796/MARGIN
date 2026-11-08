@@ -8,12 +8,16 @@ section relevant to your task before changing behavior. This file is for agents 
 
 ```sh
 pnpm install                 # once
-pnpm test                    # all unit, property and golden tests (Vitest)
+pnpm test                    # all unit, property, golden and acceptance tests (Vitest, ~4 s)
 pnpm typecheck               # tsc -b over all packages
 pnpm margin <command> …      # run the CLI from source, e.g. pnpm margin read fixtures/plain/plain.pdf
 pnpm fixtures:build          # recompile fixture PDFs from their .tex sources (needs latexmk)
+pnpm fixtures:annotate       # rebuild fixtures/*/<name>.annot.json from fixtures/*/ops.json
 pnpm golden:update           # regenerate golden outputs after an intended layout change; review the diff
 ```
+
+`MARGIN_NOW` (ISO timestamp) and `MARGIN_SEED` (integer) pin timestamps and new IDs in the CLI.
+`MARGIN_DEBUG=1` prints stack traces for internal errors.
 
 ## Packages
 
@@ -36,8 +40,21 @@ pnpm golden:update           # regenerate golden outputs after an intended layou
 | `math` | MathJax 4 SVG rendering with cache, SVG → flat paths |
 | `layout` | Anchor marks, column assignment, PAVA placement, leaders, numbering → display list |
 | `render-pdf` | Display list → PDF via pdf-lib |
+| `ops.ts` | add / edit / rm as one validated, atomic batch (shared by CLI and UI) |
+| `check.ts` | Problems reported by `margin check` |
+| `pipeline.ts` | Glue: PDF → ink → geometry, resolve all anchors, prepare math, layout |
 
 The **display list** (`layout/types.ts`) is the contract between layout and rendering.
+
+Implementation notes that are not obvious from the spec:
+
+- Character boxes come from replaying pdf.js operator lists (`pdf/extract.ts`), not from
+  `getTextContent`, which only reports runs. Box heights use fixed ascent/descent fractions so a
+  quad's baseline is recoverable (`baselineOf`).
+- IDs use Crockford base32 (`0-9a-z` without `i l o u`), which matches the spec's examples.
+- Fonts are handled by `@cantoo/fontkit` for both metrics and embedding (`@pdf-lib/fontkit`
+  crashes when subsetting Fira with `@cantoo/pdf-lib`).
+- Rotated pages are rejected by export for now (`rotated-page`).
 
 ## Invariants — do not break these
 
@@ -61,7 +78,11 @@ The **display list** (`layout/types.ts`) is the contract between layout and rend
   produces `layout.json` and one PNG per annotated page; they are compared with
   `fixtures/<name>/expected/`. If a change is intended, run `pnpm golden:update` and review the diff
   like code (PNGs: open them).
-- Fixtures are LaTeX-compiled PDFs with their `.tex` sources and a reference `.annot.json`.
+- Acceptance tests (`packages/cli/test/acceptance.test.ts`) check the phase gates of spec §12.3.
+- Fixtures (`fixtures/<name>/`): `<name>.tex` → `<name>.pdf` (reproducible build), `ops.json` →
+  `<name>.annot.json` (reference annotations), optional `golden.json` (`dpi`, `pages`), and
+  `expected/`. Current set: `plain`, `twocolumn`, `tight` (k cap reached, s < 1), `mathheavy`
+  (TikZ, region anchors), `mixed` (page sizes), `long` (20 pages, 60 comments).
 
 ## Git
 
