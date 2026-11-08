@@ -12,7 +12,8 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "margin": "tsx packages/cli/src/main.ts"
+    "margin": "node packages/cli/bin/margin.js",
+    "fixtures:build": "scripts/build-fixtures.sh"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
