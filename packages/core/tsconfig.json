@@ -5,9 +5,16 @@
     "emitDeclarationOnly": true,
     "noEmit": false,
     "outDir": "../../node_modules/.cache/tsc/core",
-    "lib": ["ES2023"],
+    "lib": [
+      "ES2023"
+    ],
     "types": []
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/test"
+  ]
 }
