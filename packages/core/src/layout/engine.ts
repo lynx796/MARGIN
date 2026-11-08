@@ -4,7 +4,7 @@ import { toOutputRect, type Column, type DocGeometry, type PageGeometry } from '
 import { layoutBox, type CommentBox } from '../text/box.ts';
 import type { FontSet } from '../text/fonts.ts';
 import { placeColumn } from './pava.ts';
-import type { Layout, PageLayout, Prim } from './types.ts';
+import type { Layout, PageItem, PageLayout, Prim } from './types.ts';
 
 // Comment layout engine (spec §6): a pure function from (geometry, annotation file, fonts) to a
 // display list. Each page is laid out independently; numbering is document-wide.
@@ -277,6 +277,7 @@ export function computeLayout(input: LayoutInput): LayoutResult {
 
     // Placement within each column (§6.5) and leaders (§6.6).
     const overflow: string[] = [];
+    const placed = new Map<string, PageItem>(onPage.map((geo) => [geo.a.id, { id: geo.a.id, anchor: geo.rects.map((r) => r.map(round3) as Rect) }]));
     for (const side of ['left', 'right'] as const) {
       const col = columnOf(g, side);
       const inCol = items
@@ -308,6 +309,7 @@ export function computeLayout(input: LayoutInput): LayoutResult {
         }
         leaders.push({ type: 'path', id, layer: 'over', d: line(e, it.lambda, boxX, end), stroke: color, strokeWidth: LEADER_WIDTH });
         for (const p of it.box.prims) boxes.push(translate(p, col.x0, y));
+        Object.assign(placed.get(id)!, { side, box: [col.x0, y, colWidth, it.box.height].map(round3) });
       });
     }
     if (overflow.length) diagnostics.overflow.push({ page: g.page, ids: overflow.sort() });
@@ -318,6 +320,7 @@ export function computeLayout(input: LayoutInput): LayoutResult {
       height: round3(g.outHeight),
       fontSize,
       overflow: overflow.sort(),
+      items: [...placed.values()].sort((a, b) => (a.id < b.id ? -1 : 1)),
       prims: [...under, ...marks, ...leaders, ...boxes].map(roundPrim),
     });
   }

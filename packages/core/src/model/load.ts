@@ -1,16 +1,12 @@
-import { Ajv2020 } from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
 import schema from '../../../../schema/annot.schema.json';
 import { MarginError } from '../errors.ts';
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, DEFAULT_WEIGHT } from './defaults.ts';
 import { cryptoRandomBytes, newId, type RandomBytes } from './ids.ts';
 import { FORMAT, FORMAT_VERSION, type Annotation, type AnnotFile, type DocumentInfo } from './types.ts';
 
-// NOTE: Ajv compiles validators with `new Function`, which the web app's CSP forbids. The web
-// package (phase 2) must use Ajv's standalone code generation at build time instead.
-const ajv = new Ajv2020({ allErrors: true, strict: false });
-(addFormats as unknown as (a: Ajv2020) => void)(ajv);
-const validateSchema = ajv.compile(schema);
+// The validator is compiled from the schema at build time (scripts/build-validator.ts): no runtime
+// code generation, so it works under a CSP without 'unsafe-eval'.
+import validateSchema from './validator.generated.js';
 
 export { schema };
 
