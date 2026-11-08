@@ -55,6 +55,13 @@ function multiply(m: Matrix, n: Matrix): Matrix {
   ];
 }
 
+/** Operator arguments carry matrices as plain arrays, typed arrays, or spread numbers. */
+function toMatrix(args: unknown[]): Matrix | undefined {
+  const m = (Array.isArray(args[0]) || ArrayBuffer.isView(args[0]) ? args[0] : args) as ArrayLike<number>;
+  if (!m || m.length < 6) return undefined;
+  return [m[0]!, m[1]!, m[2]!, m[3]!, m[4]!, m[5]!];
+}
+
 function apply(m: Matrix, x: number, y: number): [number, number] {
   return [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
 }
@@ -175,13 +182,17 @@ export function glyphsFromOperatorList(ops: OperatorList, viewport: Matrix, getF
       case OPS.restore:
         s = stack.pop() ?? s;
         break;
-      case OPS.transform:
-        s.ctm = multiply(s.ctm, args as Matrix);
+      case OPS.transform: {
+        const m = toMatrix(args);
+        if (m) s.ctm = multiply(s.ctm, m);
         break;
-      case OPS.paintFormXObjectBegin:
+      }
+      case OPS.paintFormXObjectBegin: {
         stack.push({ ...s });
-        if (Array.isArray(args[0])) s.ctm = multiply(s.ctm, args[0] as Matrix);
+        const fm = args[0] ? toMatrix([args[0]]) : undefined;
+        if (fm) s.ctm = multiply(s.ctm, fm);
         break;
+      }
       case OPS.paintFormXObjectEnd:
         s = stack.pop() ?? s;
         break;
@@ -219,8 +230,7 @@ export function glyphsFromOperatorList(ops: OperatorList, viewport: Matrix, getF
         moveText(args[0] as number, args[1] as number);
         break;
       case OPS.setTextMatrix: {
-        const m = (Array.isArray(args[0]) ? args[0] : args) as Matrix;
-        s.textMatrix = [m[0], m[1], m[2], m[3], m[4], m[5]];
+        s.textMatrix = toMatrix(args) ?? IDENTITY;
         s.x = s.lineX = s.y = s.lineY = 0;
         break;
       }

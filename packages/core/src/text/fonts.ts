@@ -1,5 +1,5 @@
-import fontkit from '@pdf-lib/fontkit';
-import type { Font } from '@pdf-lib/fontkit';
+import fontkit from '@cantoo/fontkit';
+import type { Font } from '@cantoo/fontkit';
 import { MarginError } from '../errors.ts';
 import type { FontKey } from '../layout/types.ts';
 
@@ -27,7 +27,9 @@ export class FontSet {
     const load = (key: FontKey): Font => {
       const b = bytes[key];
       if (!b) throw new MarginError('font-missing', `Font "${key}" was not provided.`);
-      return fontkit.create(b);
+      const f = fontkit.create(b);
+      if (!('layout' in f)) throw new MarginError('font-invalid', `Font "${key}" is a font collection, not a single font.`);
+      return f;
     };
     this.fonts = { sans: load('sans'), 'sans-italic': load('sans-italic'), 'sans-bold': load('sans-bold'), 'sans-bolditalic': load('sans-bolditalic'), mono: load('mono') };
   }
@@ -48,7 +50,7 @@ export class FontSet {
     // Map glyphs to code point indices via their cluster code points.
     let cp = 0;
     run.glyphs.forEach((g, i) => {
-      const adv = run.positions[i]!.xAdvance / f.unitsPerEm;
+      const adv = (run.positions?.[i]?.xAdvance ?? g.advanceWidth) / f.unitsPerEm;
       if (cp < advances.length) advances[cp] = (advances[cp] ?? 0) + adv;
       cp += Math.max(1, g.codePoints.length);
     });
