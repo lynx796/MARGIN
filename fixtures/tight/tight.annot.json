@@ -1,0 +1,144 @@
+{
+  "format": "margin-annot",
+  "version": 1,
+  "document": {
+    "fileName": "tight.pdf",
+    "sha256": "d88e35b6c5c5726c1c84a75bd3ca83a5b2fb5e1d9cda9cf17f09f8952ef1500b",
+    "pageCount": 1,
+    "pages": [
+      { "width": 595.28, "height": 841.89 }
+    ]
+  },
+  "categories": [
+    { "id": "typo", "name": "Typo", "color": "#d97706", "kind": "comment", "weight": 1 },
+    { "id": "error", "name": "Error", "color": "#dc2626", "kind": "comment", "weight": 3 },
+    { "id": "remark", "name": "General remark", "color": "#2563eb", "kind": "comment", "weight": 2 },
+    { "id": "good", "name": "Well done", "color": "#16a34a", "kind": "comment", "weight": 1 },
+    { "id": "hl", "name": "Highlight", "color": "#facc15", "kind": "highlight", "weight": 0 }
+  ],
+  "settings": {
+    "marginWidth": 150,
+    "maxEnlargement": 1.3,
+    "fontSize": 9,
+    "leaderStyle": "full",
+    "embedOriginal": false
+  },
+  "annotations": [
+    {
+      "id": "mf23x6",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[499.67, 61.14, 561.26, 71.72], [34.02, 74.69, 62.64, 85.27]],
+        "quote": {
+          "exact": "completeness axiom",
+          "prefix": "numbers converges. Use only the ",
+          "suffix": " of the reals and the definition"
+        }
+      },
+      "body": "Correct starting point.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "vrh4zw",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[187.86, 115.34, 296.16, 125.92]],
+        "quote": {
+          "exact": "is not an upper bound",
+          "prefix": ". Given ε > 0, the number s − ε ",
+          "suffix": ", so there is N with aN > s − ε."
+        }
+      },
+      "body": "By definition of the supremum.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "36scfg",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[88.57, 128.89, 117.28, 139.47]],
+        "quote": { "exact": "for all", "prefix": "nce the sequence is increasing, ", "suffix": " n" }
+      },
+      "body": "Write \\(0 \\le s - a_n < \\varepsilon\\); the absolute value hides the sign.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "a91x89",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[34.02, 142.44, 109.12, 153.02]],
+        "quote": {
+          "exact": "applying this to",
+          "prefix": " The decreasing case follows by ",
+          "suffix": " (−an). Problem 2. Decide whethe"
+        }
+      },
+      "body": "to the sequence",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "w9r490",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[241.11, 185.71, 343.96, 196.3]],
+        "quote": {
+          "exact": "alternating series test",
+          "prefix": "on. The series converges by the ",
+          "suffix": " because 1/ √ n decreases to zer"
+        }
+      },
+      "body": "**Yes.** Also state that \\(1/\\sqrt n\\) is monotone.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "zzhw4z",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[360.61, 199.26, 433.88, 209.85]],
+        "quote": {
+          "exact": "harmonic series",
+          "prefix": "diverges by comparison with the ",
+          "suffix": ". Hence the convergence is condi"
+        }
+      },
+      "body": "\\(\\frac{1}{\\sqrt n} \\ge \\frac1n\\) for \\(n\\ge1\\).",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+% Fixture "mixed": mixed page sizes (A4 portrait, A4 landscape, A5). k applies per page, s is
+% shared (spec §5.2).
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1
+\begin{document}
+\section*{Portrait page}
+This first page has the standard A4 portrait size. The grader comments on this sentence and on
+the next one, which mentions the landscape table that follows on its own page.
+\newpage
+\pdfpagewidth=297mm \pdfpageheight=210mm
+\section*{Landscape page}
+A wide table would go here. This page is landscape, so its width is the largest in the document
+and determines the enlargement factor for all pages.
+\newpage
+\pdfpagewidth=148mm \pdfpageheight=210mm
+\section*{Small page}
+An A5 page with a short closing remark.
+\end{document}

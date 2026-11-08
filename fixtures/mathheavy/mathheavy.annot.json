@@ -1,0 +1,163 @@
+{
+  "format": "margin-annot",
+  "version": 1,
+  "document": {
+    "fileName": "mathheavy.pdf",
+    "sha256": "c12a4d4d5d1c9e043efa158da2c74e79daa9e5866923b419c8111d68af393dfd",
+    "pageCount": 1,
+    "pages": [
+      { "width": 612, "height": 792 }
+    ]
+  },
+  "categories": [
+    { "id": "typo", "name": "Typo", "color": "#d97706", "kind": "comment", "weight": 1 },
+    { "id": "error", "name": "Error", "color": "#dc2626", "kind": "comment", "weight": 3 },
+    { "id": "remark", "name": "General remark", "color": "#2563eb", "kind": "comment", "weight": 2 },
+    { "id": "good", "name": "Well done", "color": "#16a34a", "kind": "comment", "weight": 1 },
+    { "id": "hl", "name": "Highlight", "color": "#facc15", "kind": "highlight", "weight": 0 }
+  ],
+  "settings": {
+    "marginWidth": 150,
+    "maxEnlargement": 1.3,
+    "fontSize": 9,
+    "leaderStyle": "full",
+    "embedOriginal": false
+  },
+  "annotations": [
+    {
+      "id": "mf23x6",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[288.15, 156.91, 376.96, 167.49]],
+        "quote": {
+          "exact": "Fourier coefficients",
+          "prefix": "Definition 1. For f ∈ L1(T) the ",
+          "suffix": " are ˆf(k) = 1 2π Z π −π f(x) e−"
+        }
+      },
+      "body": "Normalization: some texts omit \\(\\frac{1}{2\\pi}\\).",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "vrh4zw",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[312.23, 242.36, 404.61, 252.95]],
+        "quote": {
+          "exact": "the claim is trivial",
+          "prefix": ". For trigonometric polynomials ",
+          "suffix": ". For general f choose a trigono"
+        }
+      },
+      "body": "Not trivial: \\(\\hat p(k) = 0\\) only for \\(|k| > \\deg p\\). Say so.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "36scfg",
+      "category": "good",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[193.27, 291.98, 232.65, 302.56]],
+        "quote": {
+          "exact": "Parseval",
+          "prefix": "ishes for large |k|. Theorem 3 (",
+          "suffix": "). For f ∈ L2(T), 1 2π Z π −π |f"
+        }
+      },
+      "body": "Correct statement.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "zzhw4z",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[343.88, 362.5, 397.35, 373.09]],
+        "quote": {
+          "exact": "converge in",
+          "prefix": " sums SN f = P |k|≤N ˆf(k)e ikx ",
+          "suffix": " L2, but pointwise convergence m"
+        }
+      },
+      "body": "converge to \\(f\\) in",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "e7845x",
+      "category": "hl",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[440.1, 362.5, 484.46, 373.09], [125.8, 376.05, 224.78, 386.64]],
+        "quote": {
+          "exact": "pointwise convergence may fail",
+          "prefix": " ˆf(k)e ikx converge in L2, but ",
+          "suffix": "; the figure shows the Gibbs phe"
+        }
+      },
+      "body": "",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "a91x89",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[332.11, 376.05, 423.61, 386.64]],
+        "quote": {
+          "exact": "Gibbs phenomenon",
+          "prefix": " may fail; the figure shows the ",
+          "suffix": " for a square wave. x SN f ∥SN f"
+        }
+      },
+      "body": "The overshoot is about 9 % of the jump: \\[ \\lim_{N\\to\\infty} \\max S_N f \\approx 1.0895 \\]",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "w9r490",
+      "category": "error",
+      "anchor": {
+        "type": "region",
+        "page": 1,
+        "rect": [205, 500, 400, 600]
+      },
+      "body": "Label the axes with units and mark \\(\\pm\\pi\\).",
+      "side": "right",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    }
+  ]
+}

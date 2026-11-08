@@ -1,0 +1,11 @@
+% Fixture "long": twenty pages of distinct filler paragraphs for the layout acceptance test
+% (spec §12.3: 20 pages, 60 comments, no overlap, leaders non-crossing, < 16 ms per page).
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1
+\begin{document}
+\section{Filler}
+\lipsum[1-88]
+\end{document}

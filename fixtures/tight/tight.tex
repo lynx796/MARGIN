@@ -1,0 +1,26 @@
+% Fixture "tight": very narrow margins. The text block is so wide that the enlargement cap
+% k_max = 1.3 is reached and content must be scaled down (spec §5.2).
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1.2cm]{geometry}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1
+\begin{document}
+\section*{Exercise sheet 3}
+\textbf{Problem 1.} Show that every bounded monotone sequence of real numbers converges. Use only
+the completeness axiom of the reals and the definition of convergence; do not appeal to the
+Bolzano--Weierstrass theorem, which is proved later in the course from this very statement.
+
+\textbf{Solution.} Let $(a_n)$ be increasing and bounded above, and let $s = \sup_n a_n$, which
+exists by completeness. Given $\varepsilon > 0$, the number $s - \varepsilon$ is not an upper
+bound, so there is $N$ with $a_N > s - \varepsilon$. Since the sequence is increasing, for all
+$n \ge N$ we have $s - \varepsilon < a_N \le a_n \le s$, hence $|a_n - s| < \varepsilon$. The
+decreasing case follows by applying this to $(-a_n)$.
+
+\textbf{Problem 2.} Decide whether $\sum_{n\ge 1} \frac{(-1)^n}{\sqrt n}$ converges absolutely,
+conditionally, or not at all. Justify each step carefully, naming the tests you use.
+
+\textbf{Solution.} The series converges by the alternating series test because $1/\sqrt n$
+decreases to zero. It does not converge absolutely, since $\sum 1/\sqrt n$ diverges by
+comparison with the harmonic series. Hence the convergence is conditional.
+\end{document}

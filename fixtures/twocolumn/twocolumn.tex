@@ -1,0 +1,33 @@
+% Fixture "twocolumn": two-column article. Anchors in the left text column must go to the left
+% margin, anchors in the right column to the right margin (spec §6.4).
+\documentclass[10pt,twocolumn]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1
+\title{Sorting Networks in Two Columns}
+\author{Jonas Keller}
+\date{}
+\begin{document}
+\maketitle
+\section{Left column}
+Sorting networks are comparator circuits whose structure does not depend on the input. Batcher's
+odd--even merge sort uses $O(n \log^2 n)$ comparators and depth $O(\log^2 n)$. The zero--one
+principle states that a network sorts all inputs if it sorts all binary inputs, which reduces
+verification to $2^n$ cases. We revisit this classic argument with a short proof.
+
+A comparator exchanges two wires when they are out of order. Composition of comparators in
+layers gives the depth; the number of comparators gives the size. Lower bounds on size are
+notoriously hard: only for small $n$ are optimal networks known.
+\section{Right column}
+In the right column we discuss the AKS network, which achieves depth $O(\log n)$ with enormous
+constants. Practical implementations prefer bitonic sorters on GPUs because of their regular
+memory access. The bitonic merge splits a bitonic sequence into two halves of which every
+element of one is at most every element of the other.
+
+Our main observation concerns the monotone Boolean functions computed by each output wire,
+\begin{equation}
+  y_k = \bigvee_{|S| = n-k+1} \bigwedge_{i\in S} x_i ,
+\end{equation}
+which immediately yields the zero--one principle via threshold functions.
+\end{document}

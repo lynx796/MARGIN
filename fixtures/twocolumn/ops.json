@@ -1,0 +1,9 @@
+[
+  { "op": "add", "category": "remark", "quote": "Batcher's odd-even merge sort", "body": "Cite Batcher 1968." },
+  { "op": "add", "category": "error", "quote": "verification to", "body": "Only for networks with \\(n\\) inputs: \\(2^n\\) binary vectors." },
+  { "op": "add", "category": "typo", "quote": "notoriously hard", "body": "Rephrase." },
+  { "op": "add", "category": "good", "quote": "enormous", "body": "Good point about the constants." },
+  { "op": "add", "category": "remark", "quote": "bitonic sorters on GPUs", "body": "Give a reference for GPU implementations." },
+  { "op": "add", "category": "error", "quote": "monotone Boolean functions", "body": "The output \\(y_k\\) is the \\(k\\)-th *smallest*, so the threshold is \\(n-k+1\\)." },
+  { "op": "add", "category": "hl", "quote": "zero-one principle via threshold functions" }
+]
