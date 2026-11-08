@@ -1,1 +1,12 @@
 .DS_Store
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+out/
+# LaTeX build by-products in fixtures
+fixtures/**/*.aux
+fixtures/**/*.log
+fixtures/**/*.fls
+fixtures/**/*.fdb_latexmk
+fixtures/**/*.out
