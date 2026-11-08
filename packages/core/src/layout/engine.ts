@@ -204,7 +204,7 @@ export function computeLayout(input: LayoutInput): LayoutResult {
     // Highlights (§6.3): filled quads, multiply blend, beneath the page content.
     for (const geo of onPage.filter((x) => x.cat.kind === 'highlight')) {
       for (const r of geo.rects) {
-        under.push({ type: 'rect', id: geo.a.id, layer: 'under', x: r[0], y: r[1], w: r[2] - r[0], h: r[3] - r[1], fill: geo.cat.color, fillOpacity: HIGHLIGHT_OPACITY, blend: 'multiply' });
+        under.push({ type: 'rect', id: geo.a.id, layer: 'under', role: 'mark', x: r[0], y: r[1], w: r[2] - r[0], h: r[3] - r[1], fill: geo.cat.color, fillOpacity: HIGHLIGHT_OPACITY, blend: 'multiply' });
       }
     }
 
@@ -266,12 +266,12 @@ export function computeLayout(input: LayoutInput): LayoutResult {
       const { geo } = it;
       if (geo.kind === 'region') {
         const r = geo.first;
-        marks.push({ type: 'rect', id: geo.a.id, layer: 'over', x: r[0], y: r[1], w: r[2] - r[0], h: r[3] - r[1], stroke: geo.cat.color, strokeWidth: REGION_STROKE, radius: REGION_RADIUS });
+        marks.push({ type: 'rect', id: geo.a.id, layer: 'over', role: 'mark', x: r[0], y: r[1], w: r[2] - r[0], h: r[3] - r[1], stroke: geo.cat.color, strokeWidth: REGION_STROKE, radius: REGION_RADIUS });
         continue;
       }
       geo.rects.forEach((r, i) => {
         const y = geo.baselines[i]! + UNDERLINE_OFFSET + LEVEL_STEP * it.level;
-        marks.push({ type: 'path', id: geo.a.id, layer: 'over', d: line(r[0], y, r[2], y), stroke: geo.cat.color, strokeWidth: UNDERLINE_WIDTH });
+        marks.push({ type: 'path', id: geo.a.id, layer: 'over', role: 'mark', d: line(r[0], y, r[2], y), stroke: geo.cat.color, strokeWidth: UNDERLINE_WIDTH });
       });
     }
 
@@ -302,13 +302,13 @@ export function computeLayout(input: LayoutInput): LayoutResult {
         const end = y + delta[i]!;
         if (leaderStyle === 'full') {
           const reachesEdge = side === 'left' ? it.outerX > e : it.outerX < e;
-          if (reachesEdge) leaders.push({ type: 'path', id, layer: 'over', d: line(it.outerX, it.lambda, e, it.lambda), stroke: color, strokeWidth: LEADER_WIDTH, dash: LEADER_DASH });
+          if (reachesEdge) leaders.push({ type: 'path', id, layer: 'over', role: 'leader', d: line(it.outerX, it.lambda, e, it.lambda), stroke: color, strokeWidth: LEADER_WIDTH, dash: LEADER_DASH });
         } else {
           const tickEnd = side === 'left' ? e + GUTTER_TICK : e - GUTTER_TICK;
-          leaders.push({ type: 'path', id, layer: 'over', d: line(tickEnd, it.lambda, e, it.lambda), stroke: color, strokeWidth: LEADER_WIDTH });
+          leaders.push({ type: 'path', id, layer: 'over', role: 'leader', d: line(tickEnd, it.lambda, e, it.lambda), stroke: color, strokeWidth: LEADER_WIDTH });
         }
-        leaders.push({ type: 'path', id, layer: 'over', d: line(e, it.lambda, boxX, end), stroke: color, strokeWidth: LEADER_WIDTH });
-        for (const p of it.box.prims) boxes.push(translate(p, col.x0, y));
+        leaders.push({ type: 'path', id, layer: 'over', role: 'leader', d: line(e, it.lambda, boxX, end), stroke: color, strokeWidth: LEADER_WIDTH });
+        for (const p of it.box.prims) boxes.push(translate({ ...p, role: 'box' }, col.x0, y));
         Object.assign(placed.get(id)!, { side, box: [col.x0, y, colWidth, it.box.height].map(round3) });
       });
     }
