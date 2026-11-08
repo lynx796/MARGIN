@@ -1,0 +1,42 @@
+% Fixture "plain": standard article, one column, default margins.
+% Exercises ligatures (fi, ff, ffl), umlauts, possessives, line-end hyphenation, inline math,
+% a phrase that occurs twice, and a second page.
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsthm}
+\newtheorem{theorem}{Theorem}
+\pdfinfoomitdate=1 \pdftrailerid{} \pdfsuppressptexinfo=-1
+\title{On Continuous Maps of the Interval}
+\author{Anna Müller}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Introduction}
+The map $f$ is continuous on the closed interval $[0,1]$ and differentiable on its interior.
+We study the efficient computation of fixed points; the affine case is trivial, but the general
+one is not. In Müller's earlier work the fluffy notion of a ``nice'' function was used without
+a definition, which we now remedy. The map $f$ is continuous on the closed interval only when
+$f(0)$ is defined, a subtlety that is easy to overlook in a first reading of the argument.
+
+\begin{theorem}
+Every continuous map $f\colon [0,1]\to[0,1]$ has a fixed point.
+\end{theorem}
+\begin{proof}
+Let $g(x) = f(x) - x$. Then $g(0) \ge 0$ and $g(1) \le 0$, so by the intermediate value theorem
+there is $x^\ast$ with $g(x^\ast) = 0$.
+\end{proof}
+
+A considerably longer sentence follows here so that the typesetter is forced to hyphenate some
+extraordinarily long words such as incomprehensibilities, characteristically, and
+internationalization near the right margin of the paragraph.
+\[
+  \int_0^1 f(x)\,dx = \sum_{n\ge 1} a_n, \qquad a_n = \frac{1}{n^2}.
+\]
+
+\newpage
+\section{Second page}
+This page exists to test page ranges and anchors that are not on the first page. The map $f$ is
+mentioned once more here.
+\end{document}
