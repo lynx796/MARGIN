@@ -15,6 +15,8 @@ interface PrimBase {
   /** Annotation that produced the primitive. */
   id: string;
   layer: Layer;
+  /** What the primitive is part of, so a front-end can hide a comment's box while editing it. */
+  role?: 'mark' | 'leader' | 'box';
 }
 
 export interface RectPrim extends PrimBase {

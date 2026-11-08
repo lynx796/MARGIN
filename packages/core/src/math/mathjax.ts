@@ -47,7 +47,6 @@ export function setMathModuleLoader(loader: ModuleLoader): void {
 }
 
 let engine: { adaptor: LiteAdaptor; doc: ReturnType<typeof mathjax.document> } | undefined;
-let ready: Promise<void> | undefined;
 
 function getEngine() {
   if (!engine) {
@@ -127,17 +126,13 @@ async function render(tex: string, display: boolean): Promise<MathBox> {
   return { width: w / 1000, height: -minY / 1000, depth: (h + minY) / 1000, paths };
 }
 
-/** Render all given TeX sources into the cache. Safe to call repeatedly. */
+/**
+ * Render the given TeX sources into the cache. Nothing is loaded when everything is cached already
+ * (or empty), so documents without math never pay for MathJax. Glyph ranges are fetched on demand:
+ * MathJax retries a conversion once the range it needs has loaded, and the output depends only on
+ * the TeX and the font data, never on load order.
+ */
 export async function prepareMath(items: Iterable<{ tex: string; display: boolean }>): Promise<void> {
-  if (!ready) {
-    ready = (async () => {
-      const { doc } = getEngine();
-      // Load every dynamic glyph range up front so that results never depend on render order.
-      const font = (doc.outputJax as unknown as { font: { loadDynamicFiles(): Promise<void> } }).font;
-      await font.loadDynamicFiles();
-    })();
-  }
-  await ready;
   for (const { tex, display } of items) {
     const k = key(tex, display);
     if (!cache.has(k)) cache.set(k, await render(tex, display));
@@ -149,4 +144,9 @@ export function getMath(tex: string, display: boolean): MathBox {
   const box = cache.get(key(tex, display));
   if (!box) throw new Error(`Math not prepared: ${tex}`);
   return box;
+}
+
+/** Whether `prepareMath` has already rendered this source. */
+export function hasMath(tex: string, display: boolean): boolean {
+  return cache.has(key(tex, display));
 }

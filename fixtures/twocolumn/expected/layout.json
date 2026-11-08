@@ -156,6 +156,7 @@
      "type": "rect",
      "id": "e7845x",
      "layer": "under",
+     "role": "mark",
      "x": 290.58,
      "y": 641.372,
      "w": 96.07,
@@ -168,6 +169,7 @@
      "type": "rect",
      "id": "e7845x",
      "layer": "under",
+     "role": "mark",
      "x": 158,
      "y": 653.332,
      "w": 83.41,
@@ -180,6 +182,7 @@
      "type": "path",
      "id": "36scfg",
      "layer": "over",
+     "role": "mark",
      "d": "M290.26 431.701L361.29 431.701",
      "stroke": "#d97706",
      "strokeWidth": 1
@@ -188,6 +191,7 @@
      "type": "path",
      "id": "a91x89",
      "layer": "over",
+     "role": "mark",
      "d": "M322.13 510.371L363.71 510.371",
      "stroke": "#16a34a",
      "strokeWidth": 1
@@ -196,6 +200,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "mark",
      "d": "M346.02 324.101L386.65 324.101",
      "stroke": "#2563eb",
      "strokeWidth": 1
@@ -204,6 +209,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "mark",
      "d": "M158 336.061L251.55 336.061",
      "stroke": "#2563eb",
      "strokeWidth": 1
@@ -212,6 +218,7 @@
      "type": "path",
      "id": "vrh4zw",
      "layer": "over",
+     "role": "mark",
      "d": "M259.21 371.921L320.77 371.921",
      "stroke": "#dc2626",
      "strokeWidth": 1
@@ -220,6 +227,7 @@
      "type": "path",
      "id": "w9r490",
      "layer": "over",
+     "role": "mark",
      "d": "M356.76 522.331L386.65 522.331",
      "stroke": "#2563eb",
      "strokeWidth": 1
@@ -228,6 +236,7 @@
      "type": "path",
      "id": "w9r490",
      "layer": "over",
+     "role": "mark",
      "d": "M158 534.281L229.13 534.281",
      "stroke": "#2563eb",
      "strokeWidth": 1
@@ -236,6 +245,7 @@
      "type": "path",
      "id": "zzhw4z",
      "layer": "over",
+     "role": "mark",
      "d": "M344.04 582.101L386.65 582.101",
      "stroke": "#dc2626",
      "strokeWidth": 1
@@ -244,6 +254,7 @@
      "type": "path",
      "id": "zzhw4z",
      "layer": "over",
+     "role": "mark",
      "d": "M158 594.061L235.94 594.061",
      "stroke": "#dc2626",
      "strokeWidth": 1
@@ -252,6 +263,7 @@
      "type": "path",
      "id": "vrh4zw",
      "layer": "over",
+     "role": "leader",
      "d": "M259.21 371.921L158 371.921",
      "stroke": "#dc2626",
      "strokeWidth": 0.6,
@@ -264,6 +276,7 @@
      "type": "path",
      "id": "vrh4zw",
      "layer": "over",
+     "role": "leader",
      "d": "M158 371.921L150 371.921",
      "stroke": "#dc2626",
      "strokeWidth": 0.6
@@ -272,6 +285,7 @@
      "type": "path",
      "id": "36scfg",
      "layer": "over",
+     "role": "leader",
      "d": "M290.26 431.701L158 431.701",
      "stroke": "#d97706",
      "strokeWidth": 0.6,
@@ -284,6 +298,7 @@
      "type": "path",
      "id": "36scfg",
      "layer": "over",
+     "role": "leader",
      "d": "M158 431.701L150 431.701",
      "stroke": "#d97706",
      "strokeWidth": 0.6
@@ -292,6 +307,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "leader",
      "d": "M386.65 324.101L514 324.101",
      "stroke": "#2563eb",
      "strokeWidth": 0.6,
@@ -304,6 +320,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "leader",
      "d": "M514 324.101L522 324.101",
      "stroke": "#2563eb",
      "strokeWidth": 0.6
@@ -312,6 +329,7 @@
      "type": "path",
      "id": "a91x89",
      "layer": "over",
+     "role": "leader",
      "d": "M363.71 510.371L514 510.371",
      "stroke": "#16a34a",
      "strokeWidth": 0.6,
@@ -324,6 +342,7 @@
      "type": "path",
      "id": "a91x89",
      "layer": "over",
+     "role": "leader",
      "d": "M514 510.371L522 495.344",
      "stroke": "#16a34a",
      "strokeWidth": 0.6
@@ -332,6 +351,7 @@
      "type": "path",
      "id": "w9r490",
      "layer": "over",
+     "role": "leader",
      "d": "M386.65 522.331L514 522.331",
      "stroke": "#2563eb",
      "strokeWidth": 0.6,
@@ -344,6 +364,7 @@
      "type": "path",
      "id": "w9r490",
      "layer": "over",
+     "role": "leader",
      "d": "M514 522.331L522 529.844",
      "stroke": "#2563eb",
      "strokeWidth": 0.6
@@ -352,6 +373,7 @@
      "type": "path",
      "id": "zzhw4z",
      "layer": "over",
+     "role": "leader",
      "d": "M386.65 582.101L514 582.101",
      "stroke": "#dc2626",
      "strokeWidth": 0.6,
@@ -364,6 +386,7 @@
      "type": "path",
      "id": "zzhw4z",
      "layer": "over",
+     "role": "leader",
      "d": "M514 582.101L522 582.101",
      "stroke": "#dc2626",
      "strokeWidth": 0.6
@@ -378,7 +401,8 @@
      "h": 30.5,
      "fill": "#dc2626",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -388,7 +412,8 @@
      "y": 358.096,
      "w": 2,
      "h": 30.5,
-     "fill": "#dc2626"
+     "fill": "#dc2626",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -402,7 +427,8 @@
      "text": "2",
      "advances": [
       3.218
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -437,7 +463,8 @@
       2.538,
       3.249,
       5.274
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "svg",
@@ -449,7 +476,8 @@
      "paths": [
       "M384 -539C308 -539 250 -493 201 -424L209 -527L131 -527L57 0L148 0L192 -316C234 -391 292 -462 359 -462C399 -462 425 -442 415 -368L363 0L454 0L506 -370C521 -475 472 -539 384 -539Z"
      ],
-     "color": "#1a1a1a"
+     "color": "#1a1a1a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -469,7 +497,8 @@
       3.249,
       4.203,
       2.16
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "svg",
@@ -482,7 +511,8 @@
       "M258 -701C163 -701 99 -667 45 -600L107 -552C150 -603 187 -625 253 -625C328 -625 373 -579 373 -504C373 -395 315 -319 59 -73L59 0L474 0L485 -77L164 -77C389 -282 469 -383 469 -508C469 -617 391 -701 258 -701Z",
       "M864.5 -744.1C810.8 -744.1 769.8 -711.6 735.1 -662.8L740.8 -735.6L685.6 -735.6L633.3 -363L697.6 -363L728.7 -586.4C758.4 -639.4 799.4 -689.6 846.8 -689.6C875.1 -689.6 893.5 -675.5 886.4 -623.2L849.6 -363L914 -363L950.7 -624.6C961.3 -698.8 926.7 -744.1 864.5 -744.1Z"
      ],
-     "color": "#1a1a1a"
+     "color": "#1a1a1a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -510,7 +540,8 @@
       3.384,
       4.203,
       2.16
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "rect",
@@ -522,7 +553,8 @@
      "h": 19.25,
      "fill": "#d97706",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -532,7 +564,8 @@
      "y": 417.876,
      "w": 2,
      "h": 19.25,
-     "fill": "#d97706"
+     "fill": "#d97706",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -546,7 +579,8 @@
      "text": "3",
      "advances": [
       3.244
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -568,7 +602,8 @@
       4.203,
       4.95,
       2.16
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "rect",
@@ -580,7 +615,8 @@
      "h": 19.25,
      "fill": "#2563eb",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -590,7 +626,8 @@
      "y": 310.276,
      "w": 2,
      "h": 19.25,
-     "fill": "#2563eb"
+     "fill": "#2563eb",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -604,7 +641,8 @@
      "text": "1",
      "advances": [
       2.815
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -635,7 +673,8 @@
       4.797,
       4.959,
       2.16
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "rect",
@@ -647,7 +686,8 @@
      "h": 30.5,
      "fill": "#16a34a",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -657,7 +697,8 @@
      "y": 481.519,
      "w": 2,
      "h": 30.5,
-     "fill": "#16a34a"
+     "fill": "#16a34a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -671,7 +712,8 @@
      "text": "4",
      "advances": [
       3.458
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -704,7 +746,8 @@
       3.249,
       5.274,
       4.95
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -727,7 +770,8 @@
       3.249,
       4.203,
       2.16
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "rect",
@@ -739,7 +783,8 @@
      "h": 30.5,
      "fill": "#2563eb",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -749,7 +794,8 @@
      "y": 516.019,
      "w": 2,
      "h": 30.5,
-     "fill": "#2563eb"
+     "fill": "#2563eb",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -763,7 +809,8 @@
      "text": "5",
      "advances": [
       3.257
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -800,7 +847,8 @@
       5.679,
       5.229,
       5.958
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -829,7 +877,8 @@
       5.274,
       4.203,
       2.16
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "rect",
@@ -841,7 +890,8 @@
      "h": 41.75,
      "fill": "#dc2626",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -851,7 +901,8 @@
      "y": 568.276,
      "w": 2,
      "h": 41.75,
-     "fill": "#dc2626"
+     "fill": "#dc2626",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -865,7 +916,8 @@
      "text": "6",
      "advances": [
       3.465
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -888,7 +940,8 @@
       5.346,
       5.238,
       3.249
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "svg",
@@ -901,7 +954,8 @@
       "M544 -527L449 -527L247 -70L173 -527L77 -527L178 0L212 0C168 83 130 123 21 141L25 213C171 197 249 117 300 5Z",
       "M727.9 -380.2L662.8 -372.5L589.3 150L653.6 150L684.7 -73.4C716.6 -146.2 766 -179.5 805.6 -179.5C831.1 -179.5 845.9 -165.3 845.9 -139.2C845.9 -87.6 809.9 -56.4 722.2 -31.7L811.3 150L883.4 150L799.3 -14.7C877 -39.5 914.5 -87.6 914.5 -146.2C914.5 -195.7 877 -231.1 824 -231.1C777.4 -231.1 732.1 -207.7 696.8 -157.5Z"
      ],
-     "color": "#1a1a1a"
+     "color": "#1a1a1a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -920,7 +974,8 @@
       3.249,
       5.274,
       4.95
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "svg",
@@ -932,7 +987,8 @@
      "paths": [
       "M253 -750L161 -739L57 0L148 0L192 -316C237 -419 307 -466 363 -466C399 -466 420 -446 420 -409C420 -336 369 -292 245 -257L371 0L473 0L354 -233C464 -268 517 -336 517 -419C517 -489 464 -539 389 -539C323 -539 259 -506 209 -435Z"
      ],
-     "color": "#1a1a1a"
+     "color": "#1a1a1a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -948,7 +1004,8 @@
       3.627,
       3.249,
       5.274
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -969,7 +1026,8 @@
       4.698,
       4.149,
       3.195
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -1003,7 +1061,8 @@
       2.385,
       2.538,
       4.203
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "svg",
@@ -1019,7 +1078,8 @@
       "M2583.7 -468L2499.7 -468L2499.7 -318L2353.7 -318L2353.7 -242L2499.7 -242L2499.7 -92L2583.7 -92L2583.7 -242L2729.7 -242L2729.7 -318L2583.7 -318Z",
       "M3289.9 0L3381.9 0L3381.9 -689L3300.9 -689L3093.9 -561L3133.9 -496L3289.9 -591Z"
      ],
-     "color": "#1a1a1a"
+     "color": "#1a1a1a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -1033,7 +1093,8 @@
      "text": ".",
      "advances": [
       2.16
-     ]
+     ],
+     "role": "box"
     }
    ]
   }

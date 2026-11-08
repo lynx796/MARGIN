@@ -31,6 +31,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "mark",
      "d": "M229.56 166.59L350 166.59",
      "stroke": "#2563eb",
      "strokeWidth": 1
@@ -39,6 +40,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "leader",
      "d": "M229.56 166.59L118.64 166.59",
      "stroke": "#2563eb",
      "strokeWidth": 0.6,
@@ -51,6 +53,7 @@
      "type": "path",
      "id": "mf23x6",
      "layer": "over",
+     "role": "leader",
      "d": "M118.64 166.59L110.64 166.59",
      "stroke": "#2563eb",
      "strokeWidth": 0.6
@@ -65,7 +68,8 @@
      "h": 19.25,
      "fill": "#2563eb",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -75,7 +79,8 @@
      "y": 152.765,
      "w": 2,
      "h": 19.25,
-     "fill": "#2563eb"
+     "fill": "#2563eb",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -89,7 +94,8 @@
      "text": "1",
      "advances": [
       2.815
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -111,7 +117,8 @@
       2.538,
       3.249,
       2.16
-     ]
+     ],
+     "role": "box"
     }
    ]
   },
@@ -146,6 +153,7 @@
      "type": "path",
      "id": "vrh4zw",
      "layer": "over",
+     "role": "mark",
      "d": "M455.425 166.59L501.585 166.59",
      "stroke": "#2563eb",
      "strokeWidth": 1
@@ -154,6 +162,7 @@
      "type": "path",
      "id": "vrh4zw",
      "layer": "over",
+     "role": "leader",
      "d": "M501.585 166.59L599.945 166.59",
      "stroke": "#2563eb",
      "strokeWidth": 0.6,
@@ -166,6 +175,7 @@
      "type": "path",
      "id": "vrh4zw",
      "layer": "over",
+     "role": "leader",
      "d": "M599.945 166.59L628.89 166.59",
      "stroke": "#2563eb",
      "strokeWidth": 0.6
@@ -180,7 +190,8 @@
      "h": 19.25,
      "fill": "#2563eb",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -190,7 +201,8 @@
      "y": 152.765,
      "w": 2,
      "h": 19.25,
-     "fill": "#2563eb"
+     "fill": "#2563eb",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -204,7 +216,8 @@
      "text": "2",
      "advances": [
       3.218
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -248,7 +261,8 @@
       4.95,
       3.249,
       4.203
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "svg",
@@ -260,7 +274,8 @@
      "paths": [
       "M253 -750L161 -739L57 0L148 0L192 -316C237 -419 307 -466 363 -466C399 -466 420 -446 420 -409C420 -336 369 -292 245 -257L371 0L473 0L354 -233C464 -268 517 -336 517 -419C517 -489 464 -539 389 -539C323 -539 259 -506 209 -435Z"
      ],
-     "color": "#1a1a1a"
+     "color": "#1a1a1a",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -274,7 +289,8 @@
      "text": ".",
      "advances": [
       2.16
-     ]
+     ],
+     "role": "box"
     }
    ]
   },
@@ -309,6 +325,7 @@
      "type": "path",
      "id": "36scfg",
      "layer": "over",
+     "role": "mark",
      "d": "M124.565 166.59L221.415 166.59",
      "stroke": "#d97706",
      "strokeWidth": 1
@@ -317,6 +334,7 @@
      "type": "path",
      "id": "36scfg",
      "layer": "over",
+     "role": "leader",
      "d": "M124.565 166.59L30.765 166.59",
      "stroke": "#d97706",
      "strokeWidth": 0.6,
@@ -329,6 +347,7 @@
      "type": "path",
      "id": "36scfg",
      "layer": "over",
+     "role": "leader",
      "d": "M30.765 166.59L22.765 166.59",
      "stroke": "#d97706",
      "strokeWidth": 0.6
@@ -343,7 +362,8 @@
      "h": 53,
      "fill": "#d97706",
      "fillOpacity": 0.08,
-     "radius": 2
+     "radius": 2,
+     "role": "box"
     },
     {
      "type": "rect",
@@ -353,7 +373,8 @@
      "y": 152.765,
      "w": 2,
      "h": 53,
-     "fill": "#d97706"
+     "fill": "#d97706",
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -367,7 +388,8 @@
      "text": "3",
      "advances": [
       3.244
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -382,7 +404,8 @@
      "advances": [
       5.157,
       4.509
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -396,7 +419,8 @@
      "text": "p",
      "advances": [
       5.346
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -411,7 +435,8 @@
      "advances": [
       4.896,
       4.59
-     ]
+     ],
+     "role": "box"
     },
     {
      "type": "glyphRun",
@@ -426,7 +451,8 @@
      "advances": [
       4.95,
       2.16
-     ]
+     ],
+     "role": "box"
     }
    ]
   }

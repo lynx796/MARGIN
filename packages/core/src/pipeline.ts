@@ -26,11 +26,29 @@ export async function pageIndexes(doc: PdfDoc): Promise<PageIndex[]> {
   return (await doc.allText()).map((t) => new PageIndex(t));
 }
 
-/** Resolve every annotation in place (`margin resolve`); returns resolutions by ID. */
-export async function resolveAll(doc: PdfDoc, file: AnnotFile): Promise<Map<string, Resolution>> {
+/**
+ * Resolve every annotation in place (`margin resolve`); returns resolutions by ID. With `reanchor`
+ * (a different revision of the paper) stored quads are discarded and every text anchor is found
+ * again by its quote: first on its old page, then anywhere in the document.
+ */
+export async function resolveAll(doc: PdfDoc, file: AnnotFile, options: { reanchor?: boolean } = {}): Promise<Map<string, Resolution>> {
   const indexes = await pageIndexes(doc);
   const out = new Map<string, Resolution>();
-  for (const a of file.annotations) out.set(a.id, resolveAnnotation(a, indexes, doc.pageCount));
+  for (const a of file.annotations) {
+    if (options.reanchor && a.anchor.type === 'text' && a.anchor.quote) {
+      const oldPage = a.anchor.page;
+      delete a.anchor.quads;
+      let r = resolveAnnotation(a, indexes, doc.pageCount);
+      if (r.status !== 'ok' && oldPage !== undefined) {
+        delete a.anchor.page;
+        r = resolveAnnotation(a, indexes, doc.pageCount);
+        if (r.status !== 'ok') a.anchor.page = oldPage;
+      }
+      out.set(a.id, r);
+    } else {
+      out.set(a.id, resolveAnnotation(a, indexes, doc.pageCount));
+    }
+  }
   return out;
 }
 

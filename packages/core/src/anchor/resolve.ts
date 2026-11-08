@@ -44,15 +44,21 @@ export class PageIndex {
     this.kept = normalizeText(page.text, false);
   }
 
-  /** All occurrences of an already normalized needle, as source ranges, sorted and deduplicated. */
-  find(needle: string): Match[] {
+  /**
+   * All occurrences of an already normalized needle, as source ranges, sorted and deduplicated.
+   * With `ignoreCase` the needle must be lower case (used by search, not by anchoring).
+   */
+  find(needle: string, options: { ignoreCase?: boolean } = {}): Match[] {
     const seen = new Set<string>();
     const out: Match[] = [];
     if (needle.length === 0) return out;
     for (const view of [this.joined, this.kept]) {
       let from = 0;
+      // Lower-casing keeps the index map valid only if it does not change the length.
+      const lowered = options.ignoreCase ? view.text.toLowerCase() : view.text;
+      const haystack = lowered.length === view.text.length ? lowered : view.text;
       for (;;) {
-        const at = view.text.indexOf(needle, from);
+        const at = haystack.indexOf(needle, from);
         if (at < 0) break;
         const start = view.map[at]!;
         const last = view.map[at + needle.length - 1]!;

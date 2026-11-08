@@ -249,7 +249,8 @@ export async function cmdApply(args: Args, out: Output): Promise<number> {
 export async function cmdResolve(args: Args, out: Output): Promise<number> {
   const ws = openWorkspace(args.positionals[0], str(args, 'annot'));
   const doc = await ws.pdf();
-  const resolutions = await resolveAll(doc, ws.file);
+  // A PDF that differs from the one annotated: find every quote again instead of trusting stored quads.
+  const resolutions = await resolveAll(doc, ws.file, { reanchor: doc.sha256 !== ws.file.document.sha256 });
   ws.file.document.sha256 = doc.sha256;
   ws.file.document.pageCount = doc.pageCount;
   ws.file.document.pages = doc.pages.map((p) => ({ ...p }));

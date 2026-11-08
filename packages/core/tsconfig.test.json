@@ -11,9 +11,12 @@
     ],
     "types": [
       "node"
-    ]
+    ],
+    "rootDir": "../.."
   },
   "include": [
-    "src"
+    "src",
+    "../../scripts/build-validator.ts",
+    "../../schema/annot.schema.json"
   ]
 }

@@ -8,13 +8,18 @@ section relevant to your task before changing behavior. This file is for agents 
 
 ```sh
 pnpm install                 # once
-pnpm test                    # all unit, property, golden and acceptance tests (Vitest, ~4 s)
-pnpm typecheck               # tsc -b over all packages
+pnpm test                    # all unit, property, golden and acceptance tests (Vitest, ~5 s)
+pnpm test:e2e                # Playwright in Chromium and Firefox against the production build (~1 min)
+pnpm dev                     # web app dev server (http://localhost:5173); open with ?e2e for test hooks
+pnpm typecheck               # tsc -b for core and cli, svelte-check for web
 pnpm margin <command> …      # run the CLI from source, e.g. pnpm margin read fixtures/plain/plain.pdf
 pnpm fixtures:build          # recompile fixture PDFs from their .tex sources (needs latexmk)
 pnpm fixtures:annotate       # rebuild fixtures/*/<name>.annot.json from fixtures/*/ops.json
 pnpm golden:update           # regenerate golden outputs after an intended layout change; review the diff
+pnpm validator:build         # regenerate core's standalone schema validator after editing schema/
 ```
+
+First time: `pnpm exec playwright install chromium firefox`.
 
 `MARGIN_NOW` (ISO timestamp) and `MARGIN_SEED` (integer) pin timestamps and new IDs in the CLI.
 `MARGIN_DEBUG=1` prints stack traces for internal errors.
@@ -25,8 +30,33 @@ pnpm golden:update           # regenerate golden outputs after an intended layou
 | --- | --- |
 | `packages/core` | All logic. Framework-free TypeScript, runs in browser and Node. |
 | `packages/cli` | The `margin` command. Thin wrapper: file I/O, argument parsing, PNG encoding. |
+| `packages/web` | Svelte 5 + Vite single-page app: viewer, SVG overlay, CodeMirror editor, panels, storage. |
 
-`packages/web` and `packages/bridge` come in later phases (spec §13).
+`packages/bridge` (`margin serve`) comes in phase 3 (spec §13).
+
+### Web app (`packages/web/src`)
+
+| File | Role |
+| --- | --- |
+| `lib/state.svelte.ts` | The one store: document, undo history, creating/editing comments, categories, settings, search, autosave, export. Model changes are immutable snapshots; `mutate()` makes one undo step. |
+| `lib/selection.ts` | Text selection on the core's character boxes (pure, unit-tested). The browser's own selection is not used. |
+| `lib/mathcm.ts` | CodeMirror extensions: math widgets, floating preview, `@` picker, key handling. |
+| `lib/storage.ts` | OPFS (IndexedDB fallback) for PDFs and annotations, IndexedDB index and settings. |
+| `lib/export.worker.ts` | PDF export off the main thread. |
+| `components/PageView.svelte` | One page: canvas drawn with transform T, overlay, editor, pointer interaction. |
+| `components/Overlay.svelte` | The page's display list as SVG (glyph runs carry one x per character). |
+
+Rules for the web app:
+
+- Never lay out or measure text in the DOM. The overlay only *draws* the display list; positions come
+  from `computeLayout`. The comment editor's wrapping is approximate on purpose; the committed layout
+  is the core's.
+- Highlights go in a separate `<svg class="under">` without a z-index, so `mix-blend-mode: multiply`
+  blends with the canvas below, as the export does.
+- The production build ships the CSP of spec §11 (`vite.config.ts`). Nothing may need `unsafe-eval`
+  (hence the standalone validator), inline data: fonts, or a network request.
+- Keys inside the editor are bound at `Prec.highest` so autocomplete cannot swallow Enter/Esc.
+- Tests find text on screen through `window.__margin` (only with `?e2e` in the URL).
 
 ## Core modules (`packages/core/src`)
 
@@ -55,6 +85,11 @@ Implementation notes that are not obvious from the spec:
 - Fonts are handled by `@cantoo/fontkit` for both metrics and embedding (`@pdf-lib/fontkit`
   crashes when subsetting Fira with `@cantoo/pdf-lib`).
 - Rotated pages are rejected by export for now (`rotated-page`).
+- Math glyph ranges are loaded on demand by MathJax (no preloading); the web app maps their module
+  names to bundled chunks with `setMathModuleLoader` (`web/src/lib/setup.ts`).
+- The schema validator is generated (`core/src/model/validator.generated.js`); a test fails if it is
+  stale. `load.ts` imports the schema with a JSON import attribute so plain Node ESM can load core.
+- `svelte-check` needs TypeScript 6, so `packages/web` pins `typescript@~6` next to the root's 7.
 
 ## Invariants — do not break these
 
@@ -79,6 +114,9 @@ Implementation notes that are not obvious from the spec:
   `fixtures/<name>/expected/`. If a change is intended, run `pnpm golden:update` and review the diff
   like code (PNGs: open them).
 - Acceptance tests (`packages/cli/test/acceptance.test.ts`) check the phase gates of spec §12.3.
+- E2E (`packages/web/e2e`, Playwright, both browsers): editing, persistence, panels, settings, export.
+  `export.spec.ts` compares the screen overlay with the exported PDF at 150 dpi with a 1 px
+  tolerance (and a shifted copy as negative control).
 - Fixtures (`fixtures/<name>/`): `<name>.tex` → `<name>.pdf` (reproducible build), `ops.json` →
   `<name>.annot.json` (reference annotations), optional `golden.json` (`dpi`, `pages`), and
   `expected/`. Current set: `plain`, `twocolumn`, `tight` (k cap reached, s < 1), `mathheavy`
