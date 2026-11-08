@@ -70,6 +70,17 @@ export interface SvgPrim extends PrimBase {
 
 export type Prim = RectPrim | PathPrim | GlyphRunPrim | SvgPrim;
 
+/** Geometry of one annotation on a page, for hit testing and editor placement (not painted). */
+export interface PageItem {
+  id: string;
+  /** Margin the comment box sits in; absent for highlights. */
+  side?: 'left' | 'right';
+  /** Comment box `[x, y, w, h]` in output coordinates; absent for highlights. */
+  box?: [number, number, number, number];
+  /** Anchor rectangles in output coordinates: one per line fragment, or the region rectangle. */
+  anchor: [number, number, number, number][];
+}
+
 export interface PageLayout {
   page: number;
   width: number;
@@ -78,6 +89,8 @@ export interface PageLayout {
   fontSize: number;
   /** Comments that did not fit their column even after reassignment. */
   overflow: string[];
+  /** One entry per placed annotation, sorted by id. */
+  items: PageItem[];
   prims: Prim[];
 }
 

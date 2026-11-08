@@ -32,6 +32,20 @@ interface LiteNode {
   kind: string;
 }
 
+type ModuleLoader = (name: string) => Promise<unknown>;
+
+/** Default loader: Node resolves MathJax's glyph-range modules (package specifiers) itself. */
+let loadModule: ModuleLoader = (name) => import(/* @vite-ignore */ name);
+
+/**
+ * Replace how MathJax's lazily loaded glyph-range modules are imported. Bundlers cannot resolve a
+ * computed `import(name)`, so the web app maps each name to a statically known module here.
+ * Must be called before the first `prepareMath`.
+ */
+export function setMathModuleLoader(loader: ModuleLoader): void {
+  loadModule = loader;
+}
+
 let engine: { adaptor: LiteAdaptor; doc: ReturnType<typeof mathjax.document> } | undefined;
 let ready: Promise<void> | undefined;
 
@@ -39,8 +53,7 @@ function getEngine() {
   if (!engine) {
     const adaptor = liteAdaptor();
     RegisterHTMLHandler(adaptor);
-    // Glyph ranges load through dynamic import; bundlers must make these modules resolvable.
-    mathjax.asyncLoad = (name: string) => import(/* @vite-ignore */ name);
+    mathjax.asyncLoad = (name: string) => loadModule(name);
     const tex = new TeX({
       packages: ['base', 'ams', 'newcommand', 'boldsymbol', 'mathtools', 'textmacros'],
       formatError: (_jax: unknown, err: Error) => {

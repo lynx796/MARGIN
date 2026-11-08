@@ -1,5 +1,6 @@
 import { getDocument, type PDFDocumentLoadingTask, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { MarginError } from '../errors.ts';
+import { sha256Hex } from '../hash.ts';
 import type { DocumentInfo, PageSize } from '../model/types.ts';
 import { buildPageText, glyphsFromOperatorList, type PageText } from './extract.ts';
 
@@ -11,13 +12,6 @@ export interface Bitmap {
 }
 
 type Matrix = [number, number, number, number, number, number];
-
-export async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(bytes)));
-  let hex = '';
-  for (const b of digest) hex += b.toString(16).padStart(2, '0');
-  return hex;
-}
 
 /** A loaded PDF with the operations the rest of core needs. Pages are 1-based. */
 export class PdfDoc {

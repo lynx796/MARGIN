@@ -23,7 +23,7 @@ import { MarginError } from '../errors.ts';
 import { visibleRect, type DocGeometry } from '../geometry/geometry.ts';
 import type { Color, FontKey, GlyphRunPrim, Layout, Prim } from '../layout/types.ts';
 import type { AnnotFile } from '../model/types.ts';
-import { sha256Hex } from '../pdf/document.ts';
+import { sha256Hex } from '../hash.ts';
 import { FONT_FEATURES, type FontSet } from '../text/fonts.ts';
 
 // Export (spec §8.1): each original page is embedded as a form XObject, clipped to the crop and
