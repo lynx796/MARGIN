@@ -8,10 +8,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@cantoo/fontkit": "^2.0.12",
     "@cantoo/pdf-lib": "^2.11.1",
     "@mathjax/mathjax-fira-font": "^4.1.3",
     "@mathjax/src": "^4.1.3",
-    "@pdf-lib/fontkit": "^1.1.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "pdfjs-dist": "^6.5.438"
