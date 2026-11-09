@@ -10,11 +10,18 @@ import {
   computeNumbers,
   createAnnotFile,
   documentGeometry,
+  parsePseudoMap,
+  parseTerms,
+  pseudonymize,
+  restoreAnnotations,
+  serializePseudoMap,
+  suggestTerms,
   importExported,
   sha256Hex,
   layoutDocument,
   MarginError,
   pageIndexes,
+  parseAnnotFile,
   PdfDoc,
   rangeForQuads,
   renderPdf,
@@ -32,12 +39,17 @@ import { EXIT_OK, EXIT_PROBLEMS, type Output } from './output.ts';
 
 export interface Args {
   positionals: string[];
-  values: Record<string, string | boolean | undefined>;
+  values: Record<string, string | boolean | string[] | undefined>;
 }
 
 function str(args: Args, name: string): string | undefined {
   const v = args.values[name];
   return typeof v === 'string' ? v : undefined;
+}
+
+function list(args: Args, name: string): string[] {
+  const v = args.values[name];
+  return Array.isArray(v) ? v : typeof v === 'string' ? [v] : [];
 }
 
 function int(args: Args, name: string): number | undefined {
@@ -445,5 +457,125 @@ export async function cmdServe(args: Args, out: Output): Promise<number> {
     process.once('SIGTERM', stop);
   });
   await bridge.close();
+  return EXIT_OK;
+}
+
+// ── pseudonymize / restore ───────────────────────────────────────────────────────────────────
+
+function refuseOverwrite(args: Args, ...paths: string[]): void {
+  if (args.values.force) return;
+  for (const p of paths) if (existsSync(p)) throw new MarginError('exists', `${p} already exists; pass --force to overwrite it.`, { path: p });
+}
+
+/** Page PNGs of the redacted PDF with every redaction outlined in red, for the review by eye (§10.4). */
+async function writeReview(bytes: Uint8Array, matches: { page: number; quads: Rect[] }[], dir: string, dpi: number): Promise<string[]> {
+  const doc = await PdfDoc.open(bytes);
+  mkdirSync(dir, { recursive: true });
+  const written: string[] = [];
+  try {
+    for (let p = 1; p <= doc.pageCount; p++) {
+      const bm = await doc.rasterize(p, dpi);
+      const k = dpi / 72;
+      const px = (x: number, y: number) => {
+        if (x < 0 || y < 0 || x >= bm.width || y >= bm.height) return;
+        const i = (y * bm.width + x) * 4;
+        bm.data[i] = 220;
+        bm.data[i + 1] = 38;
+        bm.data[i + 2] = 38;
+        bm.data[i + 3] = 255;
+      };
+      for (const m of matches.filter((x) => x.page === p)) {
+        for (const q of m.quads) {
+          const [x0, y0, x1, y1] = [Math.floor(q[0] * k) - 2, Math.floor(q[1] * k) - 2, Math.ceil(q[2] * k) + 2, Math.ceil(q[3] * k) + 2];
+          for (let t = 0; t < 2; t++) {
+            for (let x = x0; x <= x1; x++) (px(x, y0 + t), px(x, y1 - t));
+            for (let y = y0; y <= y1; y++) (px(x0 + t, y), px(x1 - t, y));
+          }
+        }
+      }
+      const png = new PNG({ width: bm.width, height: bm.height });
+      png.data = Buffer.from(bm.data.buffer, bm.data.byteOffset, bm.data.byteLength);
+      const path = join(dir, `review-${String(p).padStart(3, '0')}.png`);
+      writeFileSync(path, PNG.sync.write(png));
+      written.push(path);
+    }
+  } finally {
+    await doc.destroy();
+  }
+  return written;
+}
+
+export async function cmdPseudonymize(args: Args, out: Output): Promise<number> {
+  const pdfPath = args.positionals[0];
+  if (!pdfPath) throw new MarginError('usage', 'Usage: margin pseudonymize <paper.pdf> --terms terms.txt [-o out.pdf] [--review dir] [--force]  |  --suggest');
+  const pdfBytes = readBytes(pdfPath);
+  if (args.values.suggest) {
+    const doc = await PdfDoc.open(pdfBytes);
+    const suggestions = suggestTerms(await doc.allText());
+    await doc.destroy();
+    out.result({ suggestions }, suggestions.length ? suggestions.map((s) => `${s.kind.padEnd(13)} p.${s.page}  ${s.text}`).join('\n') + '\n\nSuggestions only: put the ones you want in a terms file (TOKEN: variant | variant).' : 'No suggestions.');
+    return EXIT_OK;
+  }
+  const termsPath = str(args, 'terms');
+  if (!termsPath) throw new MarginError('usage', 'margin pseudonymize needs --terms <file> (one group per line: TOKEN: variant | variant | /regex/). Use --suggest for candidates.');
+  const groups = parseTerms(readFileSync(termsPath, 'utf8'));
+  const annotIn = str(args, 'annot') ? resolve(str(args, 'annot')!) : annotPathFor(resolve(pdfPath));
+  const annotations = existsSync(annotIn) ? parseAnnotFile(readFileSync(annotIn, 'utf8'), loadOptions()) : undefined;
+  if (annotations && annotations.document.sha256 !== (await sha256Hex(pdfBytes))) {
+    throw new MarginError('pdf-mismatch', `${annotIn} belongs to a different version of the PDF; run margin resolve first.`, { path: annotIn });
+  }
+
+  const { random } = loadOptions();
+  const result = await pseudonymize({ pdfBytes, fileName: basename(pdfPath), groups, fonts: loadFonts(), ...(annotations ? { annotations } : {}), ...(random ? { random } : {}) });
+  const outPdf = str(args, 'o') ? resolve(str(args, 'o')!) : join(dirname(resolve(pdfPath)), result.fileName);
+  const outMap = outPdf.replace(/\.pdf$/i, '') + '.json';
+  const outAnnot = annotPathFor(outPdf);
+  refuseOverwrite(args, outPdf, outMap, ...(result.annotations ? [outAnnot] : []));
+  writeAtomic(outPdf, result.bytes);
+  writeAtomic(outMap, serializePseudoMap(result.map));
+  if (result.annotations) writeAtomic(outAnnot, serialize({ ...result.annotations, document: { ...result.annotations.document, fileName: basename(outPdf) } }));
+  const review = str(args, 'review') ? await writeReview(result.bytes, result.matches, str(args, 'review')!, int(args, 'dpi') ?? 100) : [];
+
+  const counts = groups.map((g) => ({ token: g.token, count: result.matches.filter((m) => m.token === g.token).length }));
+  const unused = counts.filter((c) => c.count === 0).map((c) => c.token);
+  const lines = [
+    `Wrote ${outPdf}`,
+    `      ${outMap} (keep it private: it maps tokens to names)`,
+    ...(result.annotations ? [`      ${outAnnot} (${result.annotations.annotations.length} annotations)`] : []),
+    `Redacted ${result.matches.length} occurrences: ${counts.map((c) => `${c.token} ${c.count}`).join(', ')}.`,
+    `Also removed: ${result.scrubbed.join(', ') || 'nothing'}.`,
+    'Verified: no term in text, metadata, outlines or raw streams.',
+    ...(review.length ? [`Review images: ${review.join(', ')}`] : []),
+    'Before sharing, check every page by eye: names inside images (scans, logos, signatures) cannot be detected.',
+  ];
+  for (const t of unused) out.warn({ code: 'term-unused', severity: 'warning', message: `${t} matched nothing; check its spelling.` });
+  out.result({ pdf: outPdf, map: outMap, annotationFile: result.annotations ? outAnnot : null, redactions: counts, scrubbed: result.scrubbed, review }, lines.join('\n'));
+  return EXIT_OK;
+}
+
+export async function cmdRestore(args: Args, out: Output): Promise<number> {
+  const pseudoPath = args.positionals[0];
+  const mapPath = str(args, 'map');
+  const originalPath = str(args, 'original');
+  if (!pseudoPath || !mapPath || !originalPath) throw new MarginError('usage', 'Usage: margin restore <paper.pseudo.annot.json> --map paper.pseudo.json --original paper.pdf [--as TOKEN=text …] [-o paper.annot.json]');
+  const map = parsePseudoMap(readFileSync(mapPath, 'utf8'));
+  const pseudo = parseAnnotFile(readFileSync(pseudoPath, 'utf8'), loadOptions());
+  const restoreAs: Record<string, string> = {};
+  for (const a of list(args, 'as')) {
+    const eq = a.indexOf('=');
+    if (eq < 1) throw new MarginError('usage', `--as takes TOKEN=text, got "${a}".`);
+    restoreAs[a.slice(0, eq)] = a.slice(eq + 1);
+  }
+  const doc = await PdfDoc.open(readBytes(originalPath));
+  const info = doc.info(basename(originalPath));
+  const texts = await doc.allText();
+  await doc.destroy();
+  const target = str(args, 'o') ? resolve(str(args, 'o')!) : annotPathFor(resolve(originalPath));
+  const existing = existsSync(target) ? parseAnnotFile(readFileSync(target, 'utf8'), loadOptions()) : undefined;
+  if (existing && existing.document.sha256 !== info.sha256) throw new MarginError('pdf-mismatch', `${target} belongs to a different PDF than ${originalPath}.`, { path: target });
+  const restored = restoreAnnotations(pseudo, map, { original: { info, texts }, ...(existing ? { existing } : {}), restoreAs });
+  writeAtomic(target, serialize(restored));
+  const n = pseudo.annotations.length;
+  out.result({ annotationFile: target, restored: n, merged: !!existing }, `Restored ${n} annotation${n === 1 ? '' : 's'} into ${target}${existing ? ' (merged by ID with the existing file)' : ''}. Export from ${basename(originalPath)} as usual.`);
   return EXIT_OK;
 }

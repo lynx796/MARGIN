@@ -144,4 +144,25 @@ describe('renderPdf', () => {
     expect(out.pages[1]!.width).toBeCloseTo(geometry.pages[0]!.outWidth, 1);
     await out.destroy();
   });
+
+  it('places pages whose crop box exceeds the media box where the screen does', async () => {
+    const { StandardFonts } = await import('@cantoo/pdf-lib');
+    const { toOutputRect } = await import('../geometry/geometry.ts');
+    const src = await PDFDocument.create({ updateMetadata: false });
+    const page = src.addPage([600, 800]);
+    page.setCropBox(40, 300, 560, 760);
+    page.drawText('Oversized crop box', { x: 120, y: 600, size: 12, font: await src.embedFont(StandardFonts.Helvetica) });
+    const doc = await PdfDoc.open(await src.save());
+    const f = createAnnotFile(doc.info('crop.pdf'));
+    const geometry = await documentGeometry(doc, f);
+    const layout = await layoutDocument(f, geometry, testFonts());
+    const before = (await doc.text(1)).boxes[0]!;
+    const out = await PdfDoc.open(await renderPdf({ ...options, pdfBytes: doc.bytes, file: f, layout, geometry }));
+    const after = (await out.text(1)).boxes[0]!;
+    const expected = toOutputRect(geometry.pages[0]!, before);
+    expect(after[0]).toBeCloseTo(expected[0], 1);
+    expect(after[1]).toBeCloseTo(expected[1], 1);
+    await out.destroy();
+    await doc.destroy();
+  });
 });

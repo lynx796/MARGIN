@@ -1,0 +1,529 @@
+{
+ "pages": [
+  {
+   "page": 1,
+   "width": 678,
+   "height": 877.412,
+   "fontSize": 9,
+   "overflow": [],
+   "items": [
+    {
+     "id": "36scfg",
+     "anchor": [
+      [
+       159.8,
+       558.086,
+       359.78,
+       568.676
+      ]
+     ],
+     "side": "left",
+     "box": [
+      18,
+      553.949,
+      132,
+      30.5
+     ]
+    },
+    {
+     "id": "a91x89",
+     "anchor": [
+      [
+       159.8,
+       390.556,
+       277.46,
+       401.136
+      ]
+     ]
+    },
+    {
+     "id": "mf23x6",
+     "anchor": [
+      [
+       402.84,
+       349.906,
+       471.18,
+       360.486
+      ]
+     ],
+     "side": "right",
+     "box": [
+      528,
+      345.761,
+      132,
+      30.5
+     ]
+    },
+    {
+     "id": "vrh4zw",
+     "anchor": [
+      [
+       198.77,
+       363.456,
+       281.43,
+       374.036
+      ]
+     ],
+     "side": "left",
+     "box": [
+      18,
+      359.311,
+      132,
+      19.25
+     ]
+    }
+   ],
+   "prims": [
+    {
+     "type": "rect",
+     "id": "a91x89",
+     "layer": "under",
+     "role": "mark",
+     "x": 159.8,
+     "y": 390.556,
+     "w": 117.66,
+     "h": 10.58,
+     "fill": "#facc15",
+     "fillOpacity": 0.3,
+     "blend": "multiply"
+    },
+    {
+     "type": "path",
+     "id": "36scfg",
+     "layer": "over",
+     "role": "mark",
+     "d": "M159.8 567.774L359.78 567.774",
+     "stroke": "#dc2626",
+     "strokeWidth": 1
+    },
+    {
+     "type": "path",
+     "id": "mf23x6",
+     "layer": "over",
+     "role": "mark",
+     "d": "M402.84 359.586L471.18 359.586",
+     "stroke": "#2563eb",
+     "strokeWidth": 1
+    },
+    {
+     "type": "path",
+     "id": "vrh4zw",
+     "layer": "over",
+     "role": "mark",
+     "d": "M198.77 373.136L281.43 373.136",
+     "stroke": "#d97706",
+     "strokeWidth": 1
+    },
+    {
+     "type": "path",
+     "id": "vrh4zw",
+     "layer": "over",
+     "role": "leader",
+     "d": "M198.77 373.136L158 373.136",
+     "stroke": "#d97706",
+     "strokeWidth": 0.6,
+     "dash": [
+      0.6,
+      1.2
+     ]
+    },
+    {
+     "type": "path",
+     "id": "vrh4zw",
+     "layer": "over",
+     "role": "leader",
+     "d": "M158 373.136L150 373.136",
+     "stroke": "#d97706",
+     "strokeWidth": 0.6
+    },
+    {
+     "type": "path",
+     "id": "36scfg",
+     "layer": "over",
+     "role": "leader",
+     "d": "M159.8 567.774L158 567.774",
+     "stroke": "#dc2626",
+     "strokeWidth": 0.6,
+     "dash": [
+      0.6,
+      1.2
+     ]
+    },
+    {
+     "type": "path",
+     "id": "36scfg",
+     "layer": "over",
+     "role": "leader",
+     "d": "M158 567.774L150 567.774",
+     "stroke": "#dc2626",
+     "strokeWidth": 0.6
+    },
+    {
+     "type": "path",
+     "id": "mf23x6",
+     "layer": "over",
+     "role": "leader",
+     "d": "M471.18 359.586L520 359.586",
+     "stroke": "#2563eb",
+     "strokeWidth": 0.6,
+     "dash": [
+      0.6,
+      1.2
+     ]
+    },
+    {
+     "type": "path",
+     "id": "mf23x6",
+     "layer": "over",
+     "role": "leader",
+     "d": "M520 359.586L528 359.586",
+     "stroke": "#2563eb",
+     "strokeWidth": 0.6
+    },
+    {
+     "type": "rect",
+     "id": "vrh4zw",
+     "layer": "over",
+     "x": 18,
+     "y": 359.311,
+     "w": 132,
+     "h": 19.25,
+     "fill": "#d97706",
+     "fillOpacity": 0.08,
+     "radius": 2,
+     "role": "box"
+    },
+    {
+     "type": "rect",
+     "id": "vrh4zw",
+     "layer": "over",
+     "x": 18,
+     "y": 359.311,
+     "w": 2,
+     "h": 19.25,
+     "fill": "#d97706",
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans",
+     "size": 6.5,
+     "color": "#6b7280",
+     "x": 142.783,
+     "y": 368.186,
+     "text": "2",
+     "advances": [
+      3.218
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 371.636,
+     "text": "Write",
+     "advances": [
+      7.254,
+      3.474,
+      2.538,
+      3.159,
+      4.95
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans-italic",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 47.76,
+     "y": 371.636,
+     "text": "chains",
+     "advances": [
+      4.248,
+      5.229,
+      5.121,
+      2.511,
+      5.22,
+      4.149
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "vrh4zw",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 76.623,
+     "y": 371.636,
+     "text": "in italics.",
+     "advances": [
+      2.538,
+      5.274,
+      2.385,
+      2.538,
+      3.249,
+      4.896,
+      2.637,
+      2.538,
+      4.302,
+      4.203,
+      2.16
+     ],
+     "role": "box"
+    },
+    {
+     "type": "rect",
+     "id": "36scfg",
+     "layer": "over",
+     "x": 18,
+     "y": 553.949,
+     "w": 132,
+     "h": 30.5,
+     "fill": "#dc2626",
+     "fillOpacity": 0.08,
+     "radius": 2,
+     "role": "box"
+    },
+    {
+     "type": "rect",
+     "id": "36scfg",
+     "layer": "over",
+     "x": 18,
+     "y": 553.949,
+     "w": 2,
+     "h": 30.5,
+     "fill": "#dc2626",
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 6.5,
+     "color": "#6b7280",
+     "x": 142.757,
+     "y": 562.824,
+     "text": "3",
+     "advances": [
+      3.244
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 566.274,
+     "text": "Only for complete lattices,",
+     "advances": [
+      6.228,
+      5.274,
+      2.637,
+      4.428,
+      2.385,
+      2.925,
+      5.256,
+      3.474,
+      2.385,
+      4.212,
+      5.256,
+      7.713,
+      5.346,
+      2.547,
+      4.95,
+      3.159,
+      4.95,
+      2.385,
+      2.637,
+      4.896,
+      3.249,
+      3.249,
+      2.538,
+      4.212,
+      4.95,
+      4.203,
+      2.16
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "36scfg",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 24,
+     "y": 577.524,
+     "text": "as Ruffieux's remark says.",
+     "advances": [
+      4.896,
+      4.203,
+      2.385,
+      5.445,
+      5.238,
+      3.015,
+      3.105,
+      2.538,
+      4.95,
+      5.238,
+      4.365,
+      1.971,
+      4.203,
+      2.385,
+      3.384,
+      4.95,
+      7.713,
+      4.896,
+      3.474,
+      4.608,
+      2.385,
+      4.203,
+      4.806,
+      4.428,
+      4.203,
+      2.16
+     ],
+     "role": "box"
+    },
+    {
+     "type": "rect",
+     "id": "mf23x6",
+     "layer": "over",
+     "x": 528,
+     "y": 345.761,
+     "w": 132,
+     "h": 30.5,
+     "fill": "#2563eb",
+     "fillOpacity": 0.08,
+     "radius": 2,
+     "role": "box"
+    },
+    {
+     "type": "rect",
+     "id": "mf23x6",
+     "layer": "over",
+     "x": 528,
+     "y": 345.761,
+     "w": 2,
+     "h": 30.5,
+     "fill": "#2563eb",
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "mf23x6",
+     "layer": "over",
+     "font": "sans",
+     "size": 6.5,
+     "color": "#6b7280",
+     "x": 653.186,
+     "y": 354.636,
+     "text": "1",
+     "advances": [
+      2.815
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "mf23x6",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 534,
+     "y": 358.086,
+     "text": "Anna Müller should credit",
+     "advances": [
+      5.157,
+      5.274,
+      5.274,
+      4.896,
+      2.385,
+      7.164,
+      5.238,
+      2.637,
+      2.547,
+      4.95,
+      3.474,
+      2.385,
+      4.203,
+      5.274,
+      5.256,
+      5.238,
+      2.547,
+      5.382,
+      2.385,
+      4.302,
+      3.384,
+      4.95,
+      5.382,
+      2.538,
+      3.249
+     ],
+     "role": "box"
+    },
+    {
+     "type": "glyphRun",
+     "id": "mf23x6",
+     "layer": "over",
+     "font": "sans",
+     "size": 9,
+     "color": "#1a1a1a",
+     "x": 534,
+     "y": 369.336,
+     "text": "Keller explicitly here.",
+     "advances": [
+      5.121,
+      4.95,
+      2.637,
+      2.547,
+      4.95,
+      3.474,
+      2.385,
+      4.86,
+      4.365,
+      5.346,
+      2.637,
+      2.538,
+      4.302,
+      2.538,
+      3.249,
+      2.637,
+      4.428,
+      2.385,
+      5.274,
+      4.95,
+      3.384,
+      4.95,
+      2.16
+     ],
+     "role": "box"
+    }
+   ]
+  }
+ ],
+ "numbers": {
+  "mf23x6": 1,
+  "vrh4zw": 2,
+  "36scfg": 3
+ }
+}

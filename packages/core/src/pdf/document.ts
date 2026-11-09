@@ -1,4 +1,4 @@
-import { getDocument, type PDFDocumentLoadingTask, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { AnnotationMode, getDocument, type PDFDocumentLoadingTask, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { MarginError } from '../errors.ts';
 import { sha256Hex } from '../hash.ts';
 import type { DocumentInfo, PageSize } from '../model/types.ts';
@@ -76,7 +76,8 @@ export class PdfDoc {
     if (!cached) {
       cached = (async () => {
         const page = await this.page(n);
-        const ops = await page.getOperatorList();
+        // Page content only: annotation appearances (form fields, notes) are not part of the paper's text.
+        const ops = await page.getOperatorList({ annotationMode: AnnotationMode.DISABLE });
         const viewport = page.getViewport({ scale: 1 }).transform as Matrix;
         const chars = glyphsFromOperatorList(ops, viewport, (name) => (page.commonObjs.has(name) ? page.commonObjs.get(name) : undefined));
         return buildPageText(n, chars);

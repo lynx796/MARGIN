@@ -34,6 +34,8 @@ export interface PageText {
   text: string;
   /** One box per UTF-16 code unit of `text`. Inserted spaces span their gap; newlines are empty. */
   boxes: Rect[];
+  /** Present if some characters lie outside the clipping region: true for each such code unit. */
+  hidden?: boolean[];
   /** Line index of each code unit. */
   lineOf: number[];
   lines: TextLine[];
@@ -85,7 +87,18 @@ export interface RawChar {
   fontSize: number;
   /** Writing direction is horizontal and upright on the page. */
   upright: boolean;
+  /** Drawn later in the stream at a position inside a line: a pseudonymization token (see
+   *  TOKEN_TAG). Characters of the same token share the number. */
+  inline?: number;
+  /** Outside the current clipping region (e.g. the cropped-away part of an included PDF page). */
+  clipped?: true;
 }
+
+/**
+ * Marked-content tag around the tokens drawn by pseudonymization (spec §10.3). They are appended to
+ * the page's content, but belong where the removed text was; `buildPageText` moves them there.
+ */
+export const TOKEN_TAG = 'MarginToken';
 
 export interface OperatorList {
   fnArray: number[];
@@ -113,13 +126,26 @@ export function glyphsFromOperatorList(ops: OperatorList, viewport: Matrix, getF
     hScale: number;
     leading: number;
     rise: number;
+    /** Bounding box of the clipping region in page coordinates, if any clip was set. */
+    clip: Rect | undefined;
   }
   let s: State = {
     ctm: IDENTITY, textMatrix: IDENTITY, x: 0, y: 0, lineX: 0, lineY: 0, font: undefined,
-    fontSize: 0, fontDirection: 1, charSpacing: 0, wordSpacing: 0, hScale: 1, leading: 0, rise: 0,
+    fontSize: 0, fontDirection: 1, charSpacing: 0, wordSpacing: 0, hScale: 1, leading: 0, rise: 0, clip: undefined,
+  };
+  let pendingClip = false;
+  /** Intersect the clip with a box given in current user space. */
+  const clipTo = (x0: number, y0: number, x1: number, y1: number) => {
+    const m = multiply(viewport, s.ctm);
+    const pts = [apply(m, x0, y0), apply(m, x1, y0), apply(m, x0, y1), apply(m, x1, y1)];
+    const r: Rect = [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
+    s.clip = s.clip ? [Math.max(s.clip[0], r[0]), Math.max(s.clip[1], r[1]), Math.min(s.clip[2], r[2]), Math.min(s.clip[3], r[3])] : r;
   };
   const stack: State[] = [];
   const out: RawChar[] = [];
+  /** Open marked-content sequences: the token's number for TOKEN_TAG, else 0. */
+  const marked: number[] = [];
+  let tokens = 0;
 
   const moveText = (x: number, y: number) => {
     s.x = s.lineX += x;
@@ -158,12 +184,18 @@ export function glyphsFromOperatorList(ops: OperatorList, viewport: Matrix, getF
       const ys = corners.map((c) => c[1]);
       const [, baseline] = apply(base, left, yb);
       if (g.unicode) {
+        const box: Rect = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+        const cx = (box[0] + box[2]) / 2;
+        const cy = (box[1] + box[3]) / 2;
+        const clipped = s.clip !== undefined && (cx < s.clip[0] || cx > s.clip[2] || cy < s.clip[1] || cy > s.clip[3]);
         out.push({
           c: g.unicode,
-          box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)],
+          box,
           baseline,
           fontSize: effSize,
           upright,
+          ...(clipped ? { clipped: true as const } : {}),
+          ...(marked.some((m) => m > 0) ? { inline: marked.findLast((m) => m > 0)! } : {}),
         });
       }
       x += advance + spacing * s.fontDirection;
@@ -191,6 +223,19 @@ export function glyphsFromOperatorList(ops: OperatorList, viewport: Matrix, getF
         stack.push({ ...s });
         const fm = args[0] ? toMatrix([args[0]]) : undefined;
         if (fm) s.ctm = multiply(s.ctm, fm);
+        const bbox = args[1] as ArrayLike<number> | null | undefined;
+        if (bbox && bbox.length >= 4) clipTo(bbox[0]!, bbox[1]!, bbox[2]!, bbox[3]!);
+        break;
+      }
+      case OPS.clip:
+      case OPS.eoClip:
+        pendingClip = true;
+        break;
+      case OPS.constructPath: {
+        // [paint op, path data, minMax]; a pending clip takes the path's bounding box.
+        const minMax = args[2] as ArrayLike<number> | null | undefined;
+        if (pendingClip && minMax && minMax.length >= 4 && Number.isFinite(minMax[0])) clipTo(minMax[0]!, minMax[1]!, minMax[2]!, minMax[3]!);
+        pendingClip = false;
         break;
       }
       case OPS.paintFormXObjectEnd:
@@ -251,6 +296,16 @@ export function glyphsFromOperatorList(ops: OperatorList, viewport: Matrix, getF
         moveText(0, s.leading);
         showText(args[2] as Glyph[]);
         break;
+      case OPS.beginMarkedContent:
+      case OPS.beginMarkedContentProps: {
+        // pdf.js passes the tag as a Name object ({ name }).
+        const tag = args[0] as { name?: string } | string | undefined;
+        marked.push((typeof tag === 'string' ? tag : tag?.name) === TOKEN_TAG ? ++tokens : 0);
+        break;
+      }
+      case OPS.endMarkedContent:
+        marked.pop();
+        break;
       default:
         break;
     }
@@ -267,11 +322,57 @@ function round2(v: number): number {
   return Math.round(v * 100) / 100;
 }
 
+/**
+ * Move each run of `inline` characters (a pseudonymization token) next to the character it
+ * replaced text beside: on the same baseline, the nearest one ending to its left within a few
+ * spaces, else the nearest one starting to its right; a run with no such neighbor stays in place.
+ */
+function placeInline(chars: RawChar[]): RawChar[] {
+  if (!chars.some((c) => c.inline)) return chars;
+  const runs: RawChar[][] = [];
+  const rest: RawChar[] = [];
+  chars.forEach((ch, i) => {
+    if (!ch.inline) rest.push(ch);
+    else if (chars[i - 1]?.inline === ch.inline) runs[runs.length - 1]!.push(ch);
+    else runs.push([ch]);
+  });
+  const after = new Map<number, RawChar[][]>();
+  const before = new Map<number, RawChar[][]>();
+  const unplaced: RawChar[] = [];
+  for (const run of runs) {
+    const first = run[0]!;
+    const last = run[run.length - 1]!;
+    const size = first.fontSize;
+    const reach = 3 * size;
+    let left = -1;
+    let right = -1;
+    rest.forEach((ch, i) => {
+      if (Math.abs(ch.baseline - first.baseline) > LINE_GAP * Math.max(size, ch.fontSize)) return;
+      const gl = first.box[0] - ch.box[2];
+      if (gl >= -0.5 * size && gl <= reach && (left < 0 || ch.box[2] > rest[left]!.box[2])) left = i;
+      const gr = ch.box[0] - last.box[2];
+      if (gr >= -0.5 * size && gr <= reach && (right < 0 || ch.box[0] < rest[right]!.box[0])) right = i;
+    });
+    if (left >= 0) after.set(left, [...(after.get(left) ?? []), run]);
+    else if (right >= 0) before.set(right, [...(before.get(right) ?? []), run]);
+    else unplaced.push(...run);
+  }
+  const out: RawChar[] = [];
+  rest.forEach((ch, i) => {
+    for (const run of before.get(i) ?? []) out.push(...run);
+    out.push(ch);
+    for (const run of after.get(i) ?? []) out.push(...run);
+  });
+  return [...out, ...unplaced];
+}
+
 /** Group positioned characters into lines and words, producing searchable page text. */
 export function buildPageText(page: number, chars: RawChar[]): PageText {
+  chars = placeInline(chars);
   const text: string[] = [];
   const boxes: Rect[] = [];
   const lineOf: number[] = [];
+  const hidden: boolean[] = [];
   const lines: TextLine[] = [];
 
   // A line is a maximal run of consecutive (stream-order) characters whose baseline stays within
@@ -321,7 +422,8 @@ export function buildPageText(page: number, chars: RawChar[]): PageText {
       const newLine =
         Math.abs(ch.baseline - mainBaseline) > LINE_GAP * size ||
         ch.box[2] < prev.box[0] - 0.5 * size ||
-        ch.box[0] > prev.box[2] + 4 * size;
+        // A token is usually narrower than the text it replaced; the rest of its box is not a column gap.
+        (ch.box[0] > prev.box[2] + 4 * size && !prev.inline);
       if (newLine) {
         closeLine();
         const lastBox = boxes[boxes.length - 1]!;
@@ -344,6 +446,7 @@ export function buildPageText(page: number, chars: RawChar[]): PageText {
     const w = (ch.box[2] - ch.box[0]) / n;
     for (let k = 0; k < n; k++) {
       text.push(ch.c[k]!);
+      hidden[text.length - 1] = ch.clipped === true;
       boxes.push([round2(ch.box[0] + k * w), round2(ch.box[1]), round2(ch.box[0] + (k + 1) * w), round2(ch.box[3])]);
       lineOf.push(lines.length);
     }
@@ -351,5 +454,6 @@ export function buildPageText(page: number, chars: RawChar[]): PageText {
     prev = ch;
   }
   closeLine();
-  return { page, text: text.join(''), boxes, lineOf, lines };
+  const anyHidden = hidden.some((h) => h);
+  return { page, text: text.join(''), boxes, lineOf, lines, ...(anyHidden ? { hidden: Array.from({ length: text.length }, (_, i) => hidden[i] === true) } : {}) };
 }

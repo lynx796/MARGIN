@@ -12,3 +12,4 @@ fixtures/**/*.fdb_latexmk
 fixtures/**/*.out
 packages/web/test-results/
 packages/web/playwright-report/
+fixtures/names/notes.txt

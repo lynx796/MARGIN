@@ -19,5 +19,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 4000,
   },
   worker: { format: 'es' },
+  // MuPDF finds its WASM via new URL(…, import.meta.url), which pre-bundling would break.
+  optimizeDeps: { exclude: ['mupdf'] },
   server: { port: 5173, fs: { allow: ['../..'] } },
 });

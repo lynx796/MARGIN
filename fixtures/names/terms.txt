@@ -1,0 +1,6 @@
+# Term groups for the leak test (spec §10.1).
+AUTHOR_1: Anna Müller | A. Müller | Müller | Mueller | Anna
+AUTHOR_2: Jonas Keller | J. Keller | Keller | Jonas
+SUPERVISOR: Raffaella Ruffieux | Ruffieux | Raffaella
+EMAIL: /[\w.+-]+@[\w-]+(\.[\w-]+)+/
+LEGI: /\b\d{2}-\d{3}-\d{3}\b/

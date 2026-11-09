@@ -1,0 +1,108 @@
+{
+  "format": "margin-annot",
+  "version": 1,
+  "document": {
+    "fileName": "names.pdf",
+    "sha256": "1f07c50eac44b0a61cb69ba9a59e636b040c7eea639a627056638f3d95bd2e08",
+    "pageCount": 1,
+    "pages": [
+      { "width": 612, "height": 792 }
+    ]
+  },
+  "categories": [
+    { "id": "typo", "name": "Typo", "color": "#d97706", "kind": "comment", "weight": 1 },
+    { "id": "error", "name": "Error", "color": "#dc2626", "kind": "comment", "weight": 3 },
+    { "id": "remark", "name": "General remark", "color": "#2563eb", "kind": "comment", "weight": 2 },
+    { "id": "good", "name": "Well done", "color": "#16a34a", "kind": "comment", "weight": 1 },
+    { "id": "hl", "name": "Highlight", "color": "#facc15", "kind": "highlight", "weight": 0 }
+  ],
+  "settings": {
+    "marginWidth": 150,
+    "maxEnlargement": 1.3,
+    "fontSize": 9,
+    "leaderStyle": "full",
+    "embedOriginal": false
+  },
+  "annotations": [
+    {
+      "id": "mf23x6",
+      "category": "remark",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[368.84, 307.2, 437.18, 317.78]],
+        "quote": {
+          "exact": "Kellers Beweis",
+          "prefix": "’s lemma the order is complete; ",
+          "suffix": " (as Jonas calls it) needs only "
+        }
+      },
+      "body": "Anna Müller should credit Keller explicitly here.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "vrh4zw",
+      "category": "typo",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[164.77, 320.75, 247.43, 331.33]],
+        "quote": {
+          "exact": "needs only chains",
+          "prefix": "lers Beweis (as Jonas calls it) ",
+          "suffix": ". Contact: anna.mueller@student."
+        }
+      },
+      "body": "Write *chains* in italics.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "a91x89",
+      "category": "hl",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[125.8, 347.85, 243.46, 358.43]],
+        "quote": {
+          "exact": "declaration of originality",
+          "prefix": "ws [1]. ANNA M¨ULLER signed the ",
+          "suffix": " on the last page. A lemma from "
+        }
+      },
+      "body": "",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    },
+    {
+      "id": "36scfg",
+      "category": "error",
+      "anchor": {
+        "type": "text",
+        "page": 1,
+        "quads": [[125.8, 515.38, 325.78, 525.97]],
+        "quote": {
+          "exact": "Every monotone map on a complete lattice",
+          "prefix": " n2 . 1 2 Keller’s construction ",
+          "suffix": " has a least fixed point. Ruffie"
+        }
+      },
+      "body": "Only for complete lattices, as Ruffieux's remark says.",
+      "side": "auto",
+      "origin": "agent",
+      "status": "ok",
+      "created": "2026-11-08T12:00:00Z",
+      "modified": "2026-11-08T12:00:00Z"
+    }
+  ]
+}

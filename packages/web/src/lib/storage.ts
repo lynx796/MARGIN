@@ -174,6 +174,10 @@ export const storage = {
     await tx('kv', 'readwrite', (s) => s.clear());
   },
 
+  async deleteSetting(key: string): Promise<void> {
+    await tx('kv', 'readwrite', (s) => s.delete(key));
+  },
+
   /** Small key-value settings, e.g. the default category set (spec §4). */
   async getSetting<T>(key: string): Promise<T | undefined> {
     return tx<T | undefined>('kv', 'readonly', (s) => s.get(key));
