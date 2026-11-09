@@ -317,8 +317,14 @@ async function loadReport(ws: Workspace, args: Args): Promise<{ bytes: Uint8Arra
     return { bytes, position: ws.file.report.position };
   }
   const ref = ws.file.report;
-  if (!ref) return undefined;
-  if (position) ref.position = position as 'before' | 'after';
+  if (!ref) {
+    if (position) throw new MarginError('usage', '--position needs a grading report: pass --report <file>.');
+    return undefined;
+  }
+  if (position && position !== ref.position) {
+    ref.position = position as 'before' | 'after';
+    ws.save();
+  }
   const path = resolve(dirname(ws.annotPath), ref.fileName);
   if (!existsSync(path)) throw new MarginError('report-missing', `The grading report ${ref.fileName} is missing; pass --report <file> or remove "report" from the annotation file.`, { path: '/report/fileName' });
   const bytes = readBytes(path);
