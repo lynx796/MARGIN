@@ -1,0 +1,6 @@
+[
+  { "op": "add", "category": "remark", "page": 1, "quote": "Kellers Beweis", "body": "Anna Müller should credit Keller explicitly here." },
+  { "op": "add", "category": "typo", "page": 1, "quote": "needs only chains", "body": "Write *chains* in italics." },
+  { "op": "add", "category": "error", "page": 1, "quote": "Every monotone map on a complete lattice", "body": "Only for complete lattices, as Ruffieux's remark says." },
+  { "op": "add", "category": "hl", "page": 1, "quote": "declaration of originality" }
+]
