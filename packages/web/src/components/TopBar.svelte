@@ -80,6 +80,11 @@
     <button onclick={() => app.setZoom(app.zoom * 1.15)} title="Zoom in" aria-label="Zoom in">+</button>
   </div>
   <button onclick={() => (app.searchOpen = !app.searchOpen)} title="Search (Ctrl+F)" aria-label="Search">🔍</button>
+  {#if app.pseudoMap}
+    <button onclick={() => app.restoreToOriginal()} title="This is a pseudonymized copy: copy its comments to the original PDF and open that" data-testid="restore-original">Transfer to original</button>
+  {:else}
+    <button onclick={() => (app.pseudoOpen = true)} title="Make a copy with names replaced by tokens, e.g. for an AI agent" data-testid="open-pseudo">Pseudonymize…</button>
+  {/if}
   <button onclick={() => app.downloadAnnotations()} title="Download the annotation file (Ctrl+S)" data-testid="save-annotations">Save annotations</button>
   <button class="primary" onclick={() => app.exportPdf()} disabled={app.exporting} data-testid="export">{app.exporting ? 'Exporting…' : 'Export PDF'}</button>
   <button onclick={() => (app.settingsOpen = true)} title="Settings" aria-label="Settings" data-testid="open-settings">⚙</button>

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import SearchBar from './components/SearchBar.svelte';
   import SettingsDialog from './components/SettingsDialog.svelte';
+  import PseudonymizeDialog from './components/PseudonymizeDialog.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import StartScreen from './components/StartScreen.svelte';
   import TopBar from './components/TopBar.svelte';
@@ -105,6 +106,7 @@
     </div>
   </div>
   <SettingsDialog />
+  <PseudonymizeDialog />
 {:else}
   <StartScreen />
 {/if}

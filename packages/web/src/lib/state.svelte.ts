@@ -32,12 +32,18 @@ import {
   type Rect,
   type Settings,
   type Side,
+  type Problem,
+  type PseudoMap,
+  type TermGroup,
+  type TermMatch,
+  type TermSuggestion,
 } from '@margin/core';
 import { loadFontBytes, loadFonts } from './fonts.ts';
 import { BridgeClient, BridgeError, connectionFromLocation, forgetConnection, type BridgeConnection, type BridgeEvent, type BridgeFile } from './bridge.ts';
 import { storage, type DocRecord } from './storage.ts';
 import { exportInWorker } from './exporter.ts';
 import { chooseTarget, writeTarget } from './savefile.ts';
+import { redactInWorker } from './pseudonymizer.ts';
 
 export interface Toast {
   id: number;
@@ -394,6 +400,8 @@ class App {
       await this.relayout();
       await storage.savePdf({ sha: pdf.sha256, name, pageCount: pdf.pageCount }, bytes).catch(() => undefined);
       await this.loadReport();
+      this.pseudoMap = (await storage.getSetting<PseudoMap>(`pseudo:${pdf.sha256}`).catch(() => undefined)) ?? null;
+      this.pseudo = null;
       this.scheduleSave(false);
       if (mismatch) this.toast('This PDF differs from the one the annotations were made on. Use "Re-anchor" to find the quotes again.', 'warn', 12000);
     } finally {
@@ -422,6 +430,8 @@ class App {
   /** "Forget this document" (spec §11). */
   async forget(sha: string): Promise<void> {
     await storage.forget(sha);
+    await storage.deleteSetting(`pseudo:${sha}`).catch(() => undefined);
+    await storage.deleteSetting(`terms:${sha}`).catch(() => undefined);
     this.recent = await storage.list();
   }
 
@@ -1180,6 +1190,134 @@ class App {
       this.toast(`Export failed: ${(e as Error).message}`, 'error', 9000);
     } finally {
       this.exporting = false;
+    }
+  }
+
+  // ── Pseudonymization (spec §10) ─────────────────────────────────────────────────────────────
+
+  pseudoOpen = $state(false);
+  /** The run in progress or finished: review data, or verification problems. */
+  pseudo = $state<
+    | null
+    | { phase: 'running'; step: string }
+    | { phase: 'failed'; message: string; problems: Problem[] }
+    | { phase: 'review'; bytes: Uint8Array; fileName: string; map: PseudoMap; annotations: AnnotFile | null; matches: TermMatch[]; scrubbed: string[] }
+  >(null);
+  /** Mapping of the open document, if it is a pseudonymized copy made in this browser. */
+  pseudoMap = $state<PseudoMap | null>(null);
+
+  async loadTerms(): Promise<string> {
+    if (!this.pdf) return '';
+    return (await storage.getSetting<string>(`terms:${this.pdf.sha256}`).catch(() => undefined)) ?? '';
+  }
+
+  async saveTerms(text: string): Promise<void> {
+    if (this.pdf) await storage.setSetting(`terms:${this.pdf.sha256}`, text).catch(() => undefined);
+  }
+
+  async termSuggestions(): Promise<TermSuggestion[]> {
+    if (!this.pdf) return [];
+    const { suggestTerms } = await import('@margin/core/pseudo');
+    return suggestTerms(await this.pdf.allText());
+  }
+
+  /** Redact in a worker, verify here, and keep the result for the review screen (§10.4). */
+  async runPseudonymize(termsText: string): Promise<void> {
+    const pdf = this.pdf;
+    const file = this.persistable();
+    if (!pdf || !file) return;
+    const core = await import('@margin/core/pseudo');
+    let groups: TermGroup[];
+    try {
+      groups = core.parseTerms(termsText);
+      if (groups.length === 0) throw new MarginError('terms-invalid', 'Add at least one term group.');
+    } catch (e) {
+      this.pseudo = { phase: 'failed', message: (e as Error).message, problems: [] };
+      return;
+    }
+    await this.saveTerms(termsText);
+    try {
+      this.pseudo = { phase: 'running', step: 'Reading the text…' };
+      const texts = await pdf.allText();
+      this.pseudo = { phase: 'running', step: 'Removing the terms…' };
+      const r = await redactInWorker({ pdfBytes: pdf.bytes, texts: $state.snapshot(texts) as PageText[], groups, fonts: await loadFontBytes() });
+      this.pseudo = { phase: 'running', step: 'Verifying…' };
+      const problems = await core.verifyRedaction(r.bytes, groups);
+      if (problems.length) {
+        this.pseudo = { phase: 'failed', message: 'Verification failed: the redacted file still contains personal data. Nothing was saved.', problems };
+        return;
+      }
+      const fileName = core.pseudoFileName(file.document.fileName, groups);
+      const redacted = await PdfDoc.open(r.bytes.slice());
+      const info = redacted.info(fileName);
+      await redacted.destroy();
+      const map = core.createPseudoMap(pdf.sha256, info.sha256, groups);
+      const annotations = file.annotations.length ? core.pseudonymizeAnnotations($state.snapshot(file) as AnnotFile, groups, info) : null;
+      this.pseudo = { phase: 'review', bytes: r.bytes, fileName, map, annotations, matches: r.matches, scrubbed: r.scrubbed };
+    } catch (e) {
+      this.pseudo = { phase: 'failed', message: (e as Error).message, problems: [] };
+    }
+  }
+
+  async savePseudoPdf(): Promise<void> {
+    const p = this.pseudo;
+    if (p?.phase !== 'review') return;
+    await storage.setSetting(`pseudo:${p.map.redactedSha256}`, $state.snapshot(p.map));
+    const target = await chooseTarget(p.fileName, 'application/pdf');
+    if (target) await writeTarget(target, new Blob([p.bytes as BlobPart], { type: 'application/pdf' }));
+  }
+
+  async savePseudoMap(): Promise<void> {
+    const p = this.pseudo;
+    if (p?.phase !== 'review') return;
+    const { serializePseudoMap } = await import('@margin/core/pseudo');
+    const target = await chooseTarget(p.fileName.replace(/\.pdf$/i, '') + '.json', 'application/json');
+    if (target) await writeTarget(target, new Blob([serializePseudoMap($state.snapshot(p.map) as PseudoMap)], { type: 'application/json' }));
+  }
+
+  async savePseudoAnnotations(): Promise<void> {
+    const p = this.pseudo;
+    if (p?.phase !== 'review' || !p.annotations) return;
+    const target = await chooseTarget(p.fileName.replace(/\.pdf$/i, '') + '.annot.json', 'application/json');
+    if (target) await writeTarget(target, new Blob([serialize($state.snapshot(p.annotations) as AnnotFile)], { type: 'application/json' }));
+  }
+
+  /** Continue on the pseudonymized copy in this browser; its mapping is kept for the way back. */
+  async openPseudonymized(): Promise<void> {
+    const p = this.pseudo;
+    if (p?.phase !== 'review') return;
+    await storage.setSetting(`pseudo:${p.map.redactedSha256}`, $state.snapshot(p.map));
+    const annotations = p.annotations ? serialize($state.snapshot(p.annotations) as AnnotFile) : undefined;
+    this.pseudoOpen = false;
+    await this.flushSave();
+    await this.openPdf(p.bytes.slice(), p.fileName, annotations);
+  }
+
+  /** Copy the comments of this pseudonymized copy back to its original (§10.5) and open that. */
+  async restoreToOriginal(): Promise<void> {
+    const map = this.pseudoMap;
+    const file = this.persistable();
+    if (!map || !file || !this.pdf) return;
+    const original = await storage.loadPdf(map.originalSha256);
+    if (!original) {
+      this.toast('The original PDF is no longer in this browser. Open it once, then try again.', 'error', 9000);
+      return;
+    }
+    try {
+      const { restoreAnnotations } = await import('@margin/core/pseudo');
+      const rec = await storage.find(map.originalSha256);
+      const doc = await PdfDoc.open(original.slice());
+      const texts = await doc.allText();
+      const info = doc.info(rec?.name ?? 'original.pdf');
+      await doc.destroy();
+      const stored = await storage.loadAnnotations(map.originalSha256);
+      const existing = stored ? parseAnnotFile(stored) : undefined;
+      const restored = restoreAnnotations($state.snapshot(file) as AnnotFile, $state.snapshot(map) as PseudoMap, { original: { info, texts }, ...(existing ? { existing } : {}) });
+      await this.flushSave();
+      await this.openPdf(original, info.fileName, serialize(restored));
+      this.toast(`${file.annotations.length} comment${file.annotations.length === 1 ? '' : 's'} transferred to the original.`);
+    } catch (e) {
+      this.toast(e instanceof MarginError ? e.message : `Could not transfer the comments: ${(e as Error).message}`, 'error', 9000);
     }
   }
 }
