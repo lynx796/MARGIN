@@ -5,6 +5,7 @@ import {
   PDFArray,
   PDFDocument,
   PDFHexString,
+  PDFRef,
   PDFName,
   PDFNumber,
   PDFOperator,
@@ -21,9 +22,11 @@ import {
 import fontkit from '@cantoo/fontkit';
 import { MarginError } from '../errors.ts';
 import { visibleRect, type DocGeometry } from '../geometry/geometry.ts';
-import type { Color, FontKey, GlyphRunPrim, Layout, Prim } from '../layout/types.ts';
+import type { Color, FontKey, GlyphRunPrim, Layout, LinkRect, Prim } from '../layout/types.ts';
 import type { AnnotFile } from '../model/types.ts';
 import { sha256Hex } from '../hash.ts';
+import { serialize } from '../model/serialize.ts';
+import { ANNOT_ATTACHMENT, ORIGINAL_ATTACHMENT } from './embedded.ts';
 import { FONT_FEATURES, type FontSet } from '../text/fonts.ts';
 
 // Export (spec §8.1): each original page is embedded as a form XObject, clipped to the crop and
@@ -41,6 +44,8 @@ export interface RenderOptions {
   producer: string;
   /** CreationDate/ModDate; defaults to the latest annotation `modified`. */
   date?: Date;
+  /** Compiled grading report placed before or after the annotated pages (§8.4). */
+  report?: { bytes: Uint8Array; position: 'before' | 'after' };
 }
 
 const FONT_NAMES: Record<FontKey, string> = {
@@ -142,6 +147,11 @@ class PageWriter {
   }
 }
 
+async function reportPageIndexes(bytes: Uint8Array): Promise<number[]> {
+  const n = (await PDFDocument.load(bytes, { updateMetadata: false })).getPageCount();
+  return Array.from({ length: n }, (_, i) => i);
+}
+
 export async function renderPdf(o: RenderOptions): Promise<Uint8Array> {
   let src: PDFDocument;
   try {
@@ -158,6 +168,24 @@ export async function renderPdf(o: RenderOptions): Promise<Uint8Array> {
 
   const byPage = new Map(o.layout.pages.map((p) => [p.page, p]));
   const srcPages = src.getPages();
+  const latest = o.file.annotations.map((a) => a.modified).sort().pop();
+  const date = o.date ?? (latest ? new Date(latest) : EPOCH);
+
+  // Link targets (§6.8): where each comment's box ended up in the output document.
+  const targets = new Map<string, { ref: PDFRef; height: number; box: [number, number, number, number] }>();
+  const pendingLinks: { page: PDFPage; height: number; links: LinkRect[] }[] = [];
+  const reportPages = o.report ? await out.embedPdf(o.report.bytes, await reportPageIndexes(o.report.bytes)) : [];
+  const addReport = (width: number, height: number) => {
+    for (const rp of reportPages) {
+      const scale = width / rp.width;
+      const h = Math.max(height, rp.height * scale);
+      const page = out.addPage([width, h]);
+      page.drawPage(rp, { x: 0, y: (h - rp.height * scale) / 2, xScale: scale, yScale: scale });
+    }
+  };
+  const first = o.geometry.pages[0];
+  if (o.report?.position === 'before' && first) addReport(first.outWidth, first.outHeight);
+
   for (const g of o.geometry.pages) {
     const sp = srcPages[g.page - 1]!;
     if (sp.getRotation().angle % 360 !== 0) {
@@ -173,17 +201,54 @@ export async function renderPdf(o: RenderOptions): Promise<Uint8Array> {
     for (const p of prims) if (p.layer === 'under') writer.draw(p);
     page.drawPage(embedded, { x: g.ox, y: g.outHeight - g.oy - g.s * g.height, xScale: g.s, yScale: g.s });
     for (const p of prims) if (p.layer === 'over') writer.draw(p);
+    if (layout) {
+      for (const it of layout.items) if (it.box) targets.set(it.id, { ref: page.ref, height: g.outHeight, box: it.box });
+      if (layout.links) pendingLinks.push({ page, height: g.outHeight, links: layout.links });
+      // Notes pages for spilled comments follow their page directly (§6.7).
+      for (const note of layout.notes ?? []) {
+        const np = out.addPage([note.width, note.height]);
+        const nw = new PageWriter(np, fonts, note.height);
+        for (const p of note.prims) nw.draw(p);
+        for (const it of note.items) targets.set(it.id, { ref: np.ref, height: note.height, box: it.box });
+        if (note.links) pendingLinks.push({ page: np, height: note.height, links: note.links });
+      }
+    }
+  }
+  const last = o.geometry.pages.at(-1);
+  if (o.report?.position === 'after' && last) addReport(last.outWidth, last.outHeight);
+
+  // \ref occurrences become internal GoTo links to the target box; a dangling one has no link.
+  const ctx = out.context;
+  for (const { page, height, links } of pendingLinks) {
+    const annots = links.flatMap((l) => {
+      const t = targets.get(l.target);
+      if (!t) return [];
+      const [x, y, w, h] = l.rect;
+      return [ctx.register(ctx.obj({
+        Type: 'Annot',
+        Subtype: 'Link',
+        Rect: [round3(x), round3(height - y - h), round3(x + w), round3(height - y)],
+        Border: [0, 0, 0],
+        Dest: [t.ref, 'XYZ', round3(Math.max(0, t.box[0] - 4)), round3(t.height - t.box[1] + 4), null],
+      }))];
+    });
+    if (annots.length) page.node.set(PDFName.of('Annots'), ctx.obj(annots));
   }
 
-  const latest = o.file.annotations.map((a) => a.modified).sort().pop();
-  const date = o.date ?? (latest ? new Date(latest) : EPOCH);
   out.setTitle(src.getTitle() || o.file.document.fileName.replace(/\.pdf$/i, ''));
   out.setProducer(o.producer);
   out.setCreator('Margin');
   out.setCreationDate(date);
   out.setModificationDate(date);
+  // The annotation file travels with the PDF (§8.2); the original only on request.
+  const attachment = { mimeType: 'application/json', creationDate: date, modificationDate: date };
+  await out.attach(new TextEncoder().encode(serialize(o.file)), ANNOT_ATTACHMENT, { ...attachment, description: 'Margin annotation file' });
+  if (o.file.settings.embedOriginal) {
+    await out.attach(o.pdfBytes, ORIGINAL_ATTACHMENT, { mimeType: 'application/pdf', creationDate: date, modificationDate: date, description: 'Original paper' });
+  }
   // Deterministic document ID from the inputs (§8.3).
-  const id = (await sha256Hex(new TextEncoder().encode(o.file.document.sha256 + JSON.stringify(o.layout)))).slice(0, 32);
+  const reportHash = o.report ? await sha256Hex(o.report.bytes) : '';
+  const id = (await sha256Hex(new TextEncoder().encode(o.file.document.sha256 + reportHash + o.report?.position + JSON.stringify(o.layout) + o.file.settings.embedOriginal))).slice(0, 32);
   out.context.trailerInfo.ID = out.context.obj([PDFHexString.of(id), PDFHexString.of(id)]);
   return out.save({ useObjectStreams: true });
 }

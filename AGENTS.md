@@ -76,6 +76,10 @@ Rules for the web app:
   *before* comparing, so resolution never shows up as a change. Bridge reads and writes run through one
   queue. Do not read response headers other than via the body: the ETag is hashed client-side because a
   cross-origin page cannot see it.
+- Export and re-import (spec §8): `exportPdf` asks for the target first (`lib/savefile.ts`: save picker in Chromium,
+  download elsewhere; no picker with `?e2e`) because the picker needs the click. Dropping an exported PDF runs
+  `openExported`: the attached original, a dropped original or the copy in browser storage, matched by sha256.
+  The grading report PDF is kept in storage next to the paper (`storage.saveReport`) and referenced by `file.report`.
 - Agent comments (`origin: agent`, not `reviewed`) get a dashed outline and an "AI" badge in `Overlay.svelte`
   only. Those marks are screen-only; they are not in the display list and never in the export.
   Accept with Enter, the badge, or "Accept all on page"; editing a comment also accepts it.
@@ -94,6 +98,7 @@ Rules for the web app:
 | `render-pdf` | Display list → PDF via pdf-lib |
 | `ops.ts` | add / edit / rm as one validated, atomic batch (shared by CLI and UI) |
 | `merge` | Three-way merge of an externally changed annotation file by ID; conflicts keep the losing local version |
+| `render-pdf/embedded.ts` | Reads `margin.annot.json` / `margin.original.pdf` back out of an exported PDF (`importExported`) |
 | `check.ts` | Problems reported by `margin check` |
 | `pipeline.ts` | Glue: PDF → ink → geometry, resolve all anchors, prepare math, layout |
 
@@ -109,6 +114,11 @@ Implementation notes that are not obvious from the spec:
 - IDs use Crockford base32 (`0-9a-z` without `i l o u`), which matches the spec's examples.
 - Fonts are handled by `@cantoo/fontkit` for both metrics and embedding (`@pdf-lib/fontkit`
   crashes when subsetting Fira with `@cantoo/pdf-lib`).
+- Overflow (spec §6.7) is inside `computeLayout`, per page: font steps down 0.5 pt to 7.5 pt, then the lowest-weight
+  (ties: tallest) comments are spilled one at a time. A spilled comment is a small numbered tag placed by PAVA like a
+  box; its body goes to `PageLayout.notes` (extra pages of the same size, inserted after the page by `renderPdf`).
+  `PageLayout.overflow` lists the spilled IDs. `\ref` occurrences are `PageLayout.links`/`NotesPage.links` and become
+  GoTo link annotations at export. The attached annotation file is the canonical `serialize(file)`.
 - Rotated pages are rejected by export for now (`rotated-page`).
 - Math glyph ranges are loaded on demand by MathJax (no preloading); the web app maps their module
   names to bundled chunks with `setMathModuleLoader` (`web/src/lib/setup.ts`).

@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { MarginError } from '@margin/core';
-import { cmdAdd, cmdAgentGuide, cmdApply, cmdCheck, cmdEdit, cmdExport, cmdInit, cmdList, cmdRead, cmdRender, cmdResolve, cmdRm, cmdSchema, cmdServe, type Args } from './commands.ts';
+import { cmdAdd, cmdAgentGuide, cmdApply, cmdCheck, cmdEdit, cmdExport, cmdImport, cmdInit, cmdList, cmdRead, cmdRender, cmdResolve, cmdRm, cmdSchema, cmdServe, type Args } from './commands.ts';
 import { EXIT_ERROR, EXIT_OK, Output } from './output.ts';
 import { VERSION } from './workspace.ts';
 
@@ -25,7 +25,14 @@ Commands:
   check                         Schema, anchors, math errors, dangling \\ref, overflow
   render [paper.pdf] -o <dir> [--pages N] [--dpi 150]
                                 PNG per annotated page plus layout.json, for visual checks
-  export [paper.pdf] [-o file]  Flattened PDF (default paper.annotated.pdf)
+  export [paper.pdf] [-o file] [--report report.pdf|report.tex] [--position before|after]
+                                Flattened PDF (default paper.annotated.pdf) with the annotation file
+                                attached. A grading report is placed before (default) or after the
+                                pages; it is remembered in the annotation file. Comments that do not
+                                fit are set smaller, then moved to notes pages after their page.
+  import <exported.pdf> [original.pdf] [--force]
+                                Recover paper.annot.json (and the paper, if it was embedded) from an
+                                exported PDF; the original must match by sha256
   serve [--dir D] [--port 7311] [--allow-origin URL]
                                 Local bridge: serves the web app and the PDFs and annotation files
                                 of D on 127.0.0.1; changes made by this CLI appear live in the app
@@ -53,6 +60,7 @@ const COMMANDS: Record<string, (args: Args, out: Output) => Promise<number>> = {
   check: cmdCheck,
   render: cmdRender,
   export: cmdExport,
+  import: cmdImport,
   schema: cmdSchema,
   'agent-guide': cmdAgentGuide,
   serve: cmdServe,
@@ -89,6 +97,8 @@ export async function run(argv: string[]): Promise<number> {
         'app-dir': { type: 'string' },
         force: { type: 'boolean' },
         dpi: { type: 'string' },
+        report: { type: 'string' },
+        position: { type: 'string' },
         o: { type: 'string', short: 'o' },
       },
     });

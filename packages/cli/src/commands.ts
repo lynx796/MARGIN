@@ -1,6 +1,7 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { PNG } from 'pngjs';
 import { DEFAULT_PORT, startBridge } from '@margin/bridge';
 import {
@@ -9,6 +10,8 @@ import {
   computeNumbers,
   createAnnotFile,
   documentGeometry,
+  importExported,
+  sha256Hex,
   layoutDocument,
   MarginError,
   pageIndexes,
@@ -270,6 +273,11 @@ export async function cmdCheck(args: Args, out: Output): Promise<number> {
   const ws = openWorkspace(args.positionals[0], str(args, 'annot'));
   const { doc, layout } = await withLayout(ws);
   const problems = checkFile(ws.file, { pdfSha256: doc.sha256, diagnostics: layout.diagnostics });
+  if (ws.file.report) {
+    const path = resolve(dirname(ws.annotPath), ws.file.report.fileName);
+    if (!existsSync(path)) problems.push({ code: 'report-missing', severity: 'error', path: '/report/fileName', message: `The grading report ${ws.file.report.fileName} is missing.` });
+    else if ((await sha256Hex(readBytes(path))) !== ws.file.report.sha256) problems.push({ code: 'report-changed', severity: 'warning', path: '/report/sha256', message: `${ws.file.report.fileName} changed after it was attached.` });
+  }
   const errors = problems.filter((p) => p.severity === 'error');
   const text = problems.length ? problems.map((p) => `${p.severity}[${p.code}]: ${p.message}`).join('\n') : `OK: ${ws.file.annotations.length} annotations, no problems.`;
   out.result({ problems }, text);
@@ -278,20 +286,96 @@ export async function cmdCheck(args: Args, out: Output): Promise<number> {
 
 // ── export / render ───────────────────────────────────────────────────────────────────────────
 
-async function exportBytes(ws: Workspace): Promise<{ bytes: Uint8Array; layout: LayoutResult }> {
+/** Compile a report written in LaTeX with the local latexmk (§8.4); returns the PDF path. */
+function compileReport(texPath: string): string {
+  try {
+    execFileSync('latexmk', ['-pdf', '-interaction=nonstopmode', '-halt-on-error', basename(texPath)], { cwd: dirname(texPath), stdio: 'pipe' });
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new MarginError('no-latex', 'Compiling a .tex report needs a TeX installation (latexmk was not found). Compile it yourself and pass the PDF to --report.');
+    }
+    throw new MarginError('report-compile', `latexmk failed for ${texPath}: ${String((e as { stdout?: Buffer }).stdout ?? (e as Error).message).split('\n').slice(-15).join('\n')}`);
+  }
+  return texPath.replace(/\.tex$/i, '.pdf');
+}
+
+/**
+ * The grading report to put in front of (or behind) the annotated pages (§8.4): `--report` (and
+ * `--position`), which is then remembered in the annotation file, else the file's `report` entry.
+ * Without either there is no report and nothing is added.
+ */
+async function loadReport(ws: Workspace, args: Args): Promise<{ bytes: Uint8Array; position: 'before' | 'after' } | undefined> {
+  const flag = str(args, 'report');
+  const position = str(args, 'position');
+  if (position !== undefined && position !== 'before' && position !== 'after') throw new MarginError('usage', '--position must be before or after.');
+  if (flag) {
+    let path = resolve(flag);
+    if (extname(path).toLowerCase() === '.tex') path = compileReport(path);
+    const bytes = readBytes(path);
+    ws.file.report = { fileName: relative(dirname(ws.annotPath), path), sha256: await sha256Hex(bytes), position: (position as 'before' | 'after' | undefined) ?? ws.file.report?.position ?? 'before' };
+    ws.save();
+    return { bytes, position: ws.file.report.position };
+  }
+  const ref = ws.file.report;
+  if (!ref) return undefined;
+  if (position) ref.position = position as 'before' | 'after';
+  const path = resolve(dirname(ws.annotPath), ref.fileName);
+  if (!existsSync(path)) throw new MarginError('report-missing', `The grading report ${ref.fileName} is missing; pass --report <file> or remove "report" from the annotation file.`, { path: '/report/fileName' });
+  const bytes = readBytes(path);
+  if ((await sha256Hex(bytes)) !== ref.sha256) {
+    ws.warnings.push(new MarginError('report-changed', `${ref.fileName} changed after it was attached; export uses the current file. Pass --report ${ref.fileName} to accept it.`, { path: '/report/sha256' }));
+  }
+  return { bytes, position: ref.position };
+}
+
+async function exportBytes(ws: Workspace, report?: { bytes: Uint8Array; position: 'before' | 'after' }): Promise<{ bytes: Uint8Array; layout: LayoutResult }> {
   const { doc, layout, geometry } = await withLayout(ws);
-  const bytes = await renderPdf({ pdfBytes: doc.bytes, file: ws.file, layout, geometry, fonts: loadFonts(), producer: `Margin ${VERSION}` });
+  const bytes = await renderPdf({ pdfBytes: doc.bytes, file: ws.file, layout, geometry, fonts: loadFonts(), producer: `Margin ${VERSION}`, ...(report ? { report } : {}) });
   return { bytes, layout };
 }
 
 export async function cmdExport(args: Args, out: Output): Promise<number> {
   const ws = openWorkspace(args.positionals[0], str(args, 'annot'));
-  const { bytes, layout } = await exportBytes(ws);
+  const report = await loadReport(ws, args);
+  const { bytes, layout } = await exportBytes(ws, report);
   ws.warnings.forEach((w) => out.warn(w));
   const target = str(args, 'o') ?? join(dirname(ws.pdfPath), basename(ws.pdfPath).replace(/\.pdf$/i, '') + '.annotated.pdf');
   writeAtomic(target, bytes);
-  for (const o of layout.diagnostics.overflow) out.warn({ code: 'overflow', severity: 'warning', message: `Page ${o.page}: comments do not fit the margins (${o.ids.join(', ')}).` });
-  out.result({ output: resolve(target), bytes: bytes.length, pages: layout.pages.length }, `Wrote ${target}.`);
+  for (const o of layout.diagnostics.overflow) out.warn({ code: 'overflow', severity: 'warning', message: `Page ${o.page}: ${o.ids.length} comment(s) moved to a notes page (${o.ids.join(', ')}).` });
+  out.result({ output: resolve(target), bytes: bytes.length, pages: layout.pages.length, report: report ? ws.file.report!.fileName : null }, `Wrote ${target}.`);
+  return EXIT_OK;
+}
+
+/**
+ * `margin import exported.pdf [original.pdf]`: recover the editable document from an exported PDF
+ * (§8.2). The original is the attached one, or the given file, which must match by sha256.
+ */
+export async function cmdImport(args: Args, out: Output): Promise<number> {
+  const [exportedPath, originalArg] = args.positionals;
+  if (!exportedPath) throw new MarginError('usage', 'Usage: margin import <exported.pdf> [original.pdf] [--force]');
+  const imported = await importExported(readBytes(exportedPath), loadOptions());
+  if (!imported) throw new MarginError('not-exported', `${exportedPath} has no Margin annotation file attached.`, { path: exportedPath });
+  const { file } = imported;
+  let original = imported.original;
+  if (originalArg) {
+    original = readBytes(originalArg);
+    if ((await sha256Hex(original)) !== file.document.sha256) {
+      throw new MarginError('original-mismatch', `${originalArg} is not the paper this export was made from (sha256 differs).`, { path: originalArg });
+    }
+  }
+  if (!original) {
+    throw new MarginError('original-needed', `The original paper (${file.document.fileName}, sha256 ${file.document.sha256.slice(0, 12)}…) is not attached; pass it: margin import ${exportedPath} <original.pdf>.`);
+  }
+  const dir = dirname(resolve(originalArg ?? exportedPath));
+  const pdfPath = originalArg ? resolve(originalArg) : join(dir, file.document.fileName);
+  const annotPath = str(args, 'annot') ? resolve(str(args, 'annot')!) : annotPathFor(pdfPath);
+  if (existsSync(annotPath) && !args.values.force) throw new MarginError('exists', `${annotPath} already exists; pass --force to overwrite it.`, { path: annotPath });
+  if (!originalArg) {
+    if (existsSync(pdfPath) && !args.values.force) throw new MarginError('exists', `${pdfPath} already exists; pass --force to overwrite it, or pass the original explicitly.`, { path: pdfPath });
+    writeAtomic(pdfPath, original);
+  }
+  writeAtomic(annotPath, serialize(file));
+  out.result({ annotationFile: annotPath, pdf: pdfPath, annotations: file.annotations.length }, `Restored ${annotPath} (${file.annotations.length} annotations) for ${pdfPath}.`);
   return EXIT_OK;
 }
 

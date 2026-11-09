@@ -42,4 +42,4 @@ export class Output {
 }
 
 /** Error codes that mean the command was used wrongly (exit 2) rather than a validation problem. */
-export const USAGE_CODES = new Set(['usage', 'no-annotation-file', 'exists', 'pdf-invalid']);
+export const USAGE_CODES = new Set(['usage', 'no-annotation-file', 'exists', 'pdf-invalid', 'no-latex', 'report-missing', 'not-exported', 'original-needed']);
