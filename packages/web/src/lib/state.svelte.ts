@@ -37,6 +37,7 @@ import { loadFontBytes, loadFonts } from './fonts.ts';
 import { BridgeClient, BridgeError, connectionFromLocation, forgetConnection, type BridgeConnection, type BridgeEvent, type BridgeFile } from './bridge.ts';
 import { storage, type DocRecord } from './storage.ts';
 import { exportInWorker } from './exporter.ts';
+import { chooseTarget, writeTarget } from './savefile.ts';
 
 export interface Toast {
   id: number;
@@ -68,21 +69,17 @@ export type OriginFilter = '' | 'human' | 'agent' | 'unreviewed';
 export type SearchHit = { kind: 'text'; page: number; quads: Rect[] } | { kind: 'comment'; id: string };
 
 const MAX_HISTORY = 200;
+
+async function pageCountOf(bytes: Uint8Array): Promise<number> {
+  const doc = await PdfDoc.open(bytes.slice());
+  const n = doc.pageCount;
+  await doc.destroy();
+  return n;
+}
 const encoder = new TextEncoder();
 
 function now(): string {
   return isoSeconds(new Date());
-}
-
-function download(name: string, data: Blob): void {
-  const url = URL.createObjectURL(data);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
 /** Text annotations that still lack geometry (written by an agent or by hand). */
@@ -264,13 +261,16 @@ class App {
 
   /** Open dropped or picked files: a PDF, an annotation file, or both. */
   async openFiles(files: File[]): Promise<void> {
-    const pdf = files.find((f) => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+    const pdfs = files.filter((f) => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
     const annot = files.find((f) => /\.json$/i.test(f.name));
-    if (!pdf && !annot) {
+    if (pdfs.length === 0 && !annot) {
       this.toast('Drop a PDF and, optionally, its .annot.json file.', 'warn');
       return;
     }
     try {
+      // An exported PDF carries its annotation file (§8.2); with the original it is editable again.
+      if (!annot && (await this.openExported(pdfs))) return;
+      const pdf = pdfs[0];
       if (pdf) {
         await this.openPdf(new Uint8Array(await pdf.arrayBuffer()), pdf.name, annot ? await annot.text() : undefined);
       } else if (annot) {
@@ -279,6 +279,35 @@ class App {
     } catch (e) {
       this.toast(e instanceof MarginError ? e.message : `Could not open the file: ${(e as Error).message}`, 'error', 9000);
     }
+  }
+
+  /**
+   * Re-import (§8.2): if one of the PDFs is a Margin export, open its original (attached, dropped
+   * along with it, or still in browser storage) with the recovered annotations.
+   */
+  private async openExported(pdfs: File[]): Promise<boolean> {
+    const { importExported } = await import('@margin/core/render-pdf');
+    for (const f of pdfs) {
+      const bytes = new Uint8Array(await f.arrayBuffer());
+      const imported = await importExported(bytes).catch(() => undefined);
+      if (!imported) continue;
+      const { file } = imported;
+      let original = imported.original;
+      for (const other of pdfs) {
+        if (original || other === f) continue;
+        const candidate = new Uint8Array(await other.arrayBuffer());
+        if ((await sha256Hex(candidate)) === file.document.sha256) original = candidate;
+      }
+      original ??= (await storage.loadPdf(file.document.sha256)) ?? undefined;
+      if (!original) {
+        this.toast(`This is an export of ${file.document.fileName}. Drop that original PDF together with it to edit the comments again.`, 'warn', 12000);
+        return true;
+      }
+      await this.openPdf(original, file.document.fileName, serialize(file));
+      this.toast('Opened from an exported PDF.');
+      return true;
+    }
+    return false;
   }
 
   private async openAnnotationOnly(text: string): Promise<void> {
@@ -364,6 +393,7 @@ class App {
       this.fitPending = true;
       await this.relayout();
       await storage.savePdf({ sha: pdf.sha256, name, pageCount: pdf.pageCount }, bytes).catch(() => undefined);
+      await this.loadReport();
       this.scheduleSave(false);
       if (mismatch) this.toast('This PDF differs from the one the annotations were made on. Use "Re-anchor" to find the quotes again.', 'warn', 12000);
     } finally {
@@ -1063,10 +1093,57 @@ class App {
   }
 
   /** "Save annotations": download the .annot.json (spec §7.6). */
-  downloadAnnotations(): void {
+  async downloadAnnotations(): Promise<void> {
     const f = this.persistable();
     if (!f) return;
-    download(f.document.fileName.replace(/\.pdf$/i, '') + '.annot.json', new Blob([serialize(f)], { type: 'application/json' }));
+    const target = await chooseTarget(f.document.fileName.replace(/\.pdf$/i, '') + '.annot.json', 'application/json');
+    if (target) await writeTarget(target, new Blob([serialize(f)], { type: 'application/json' }));
+  }
+
+  // ── Grading report (§8.4) ───────────────────────────────────────────────────────────────────
+
+  /** The compiled report PDF, kept in browser storage next to the paper. */
+  report = $state<{ bytes: Uint8Array; pages: number } | null>(null);
+
+  private async loadReport(): Promise<void> {
+    this.report = null;
+    const ref = this.file?.report;
+    if (!ref || !this.pdf) return;
+    const bytes = await storage.loadReport(this.pdf.sha256).catch(() => null);
+    if (!bytes) {
+      this.toast(`The grading report ${ref.fileName} is not in this browser; attach it again in Settings.`, 'warn', 9000);
+    } else if ((await sha256Hex(bytes)) !== ref.sha256) {
+      this.toast(`The stored grading report differs from ${ref.fileName} named in the annotations; attach it again in Settings.`, 'warn', 9000);
+    } else {
+      this.report = { bytes, pages: await pageCountOf(bytes) };
+    }
+  }
+
+  async attachReport(file: File): Promise<void> {
+    if (!this.pdf) return;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const pages = await pageCountOf(bytes);
+      await storage.saveReport(this.pdf.sha256, bytes);
+      const sha256 = await sha256Hex(bytes);
+      const position = this.file?.report?.position ?? 'before';
+      this.mutate((f) => ({ ...f, report: { fileName: file.name, sha256, position } }), 'attach grading report');
+      this.report = { bytes, pages };
+    } catch (e) {
+      this.toast(`Could not use that file as a report: ${(e as Error).message}`, 'error', 9000);
+    }
+  }
+
+  setReportPosition(position: 'before' | 'after'): void {
+    this.mutate((f) => (f.report ? { ...f, report: { ...f.report, position } } : f), 'move grading report');
+  }
+
+  /** Detach the report from the document. The stored copy stays, so undo can bring it back. */
+  removeReport(): void {
+    this.mutate((f) => {
+      const { report: _r, ...rest } = f;
+      return rest as AnnotFile;
+    }, 'remove grading report');
   }
 
   exporting = $state(false);
@@ -1076,6 +1153,10 @@ class App {
     const file = this.persistable();
     if (!file || !this.pdf || !this.geometry || this.exporting) return;
     if (this.editingId) this.commitEdit();
+    // Ask where to save first: the picker needs the click that started the export (§8.3).
+    const name = file.document.fileName.replace(/\.pdf$/i, '') + '.annotated.pdf';
+    const target = await chooseTarget(name, 'application/pdf');
+    if (!target) return;
     this.exporting = true;
     try {
       await this.relayout();
@@ -1090,8 +1171,11 @@ class App {
         geometry: $state.snapshot(this.geometry) as DocGeometry,
         fonts: await loadFontBytes(),
         producer: 'Margin 0.1.0',
+        ...(this.report && file.report ? { report: { bytes: this.report.bytes, position: file.report.position } } : {}),
       });
-      download(file.document.fileName.replace(/\.pdf$/i, '') + '.annotated.pdf', new Blob([bytes as BlobPart], { type: 'application/pdf' }));
+      const spilled = layout.pages.filter((p) => p.overflow.length).length;
+      if (spilled) this.toast(`${spilled} page${spilled > 1 ? 's have' : ' has'} comments on notes pages after ${spilled > 1 ? 'them' : 'it'}.`, 'warn');
+      await writeTarget(target, new Blob([bytes as BlobPart], { type: 'application/pdf' }));
     } catch (e) {
       this.toast(`Export failed: ${(e as Error).message}`, 'error', 9000);
     } finally {

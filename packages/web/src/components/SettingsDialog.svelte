@@ -98,6 +98,25 @@
     </section>
 
     <section>
+      <h3>Grading report</h3>
+      <p class="hint">A compiled report PDF (written in LaTeX elsewhere) is placed {app.file?.report?.position ?? 'before'} the annotated pages on export, scaled to the page width. Without one, the export has only the annotated pages.</p>
+      <div class="row">
+        {#if app.file?.report}
+          <span data-testid="report-name">{app.file.report.fileName}{app.report ? ` · ${app.report.pages} page${app.report.pages > 1 ? 's' : ''}` : ' · not in this browser'}</span>
+          <select value={app.file.report.position} onchange={(e) => app.setReportPosition(e.currentTarget.value as 'before' | 'after')} aria-label="Report position" data-testid="report-position">
+            <option value="before">before the paper</option>
+            <option value="after">after the paper</option>
+          </select>
+          <button onclick={() => app.removeReport()} data-testid="report-remove">Remove</button>
+        {/if}
+        <label class="file">
+          <input type="file" accept="application/pdf,.pdf" data-testid="report-input" onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) void app.attachReport(f); e.currentTarget.value = ''; }} />
+        </label>
+      </div>
+      <label class="check"><input type="checkbox" checked={s.embedOriginal} onchange={(e) => app.updateSettings({ embedOriginal: e.currentTarget.checked })} data-testid="embed-original" /> Attach the original paper to exports (about doubles the file size; then the export alone is enough to continue editing)</label>
+    </section>
+
+    <section>
       <h3>Data in this browser</h3>
       <p class="hint">Storage: {app.storageKind ?? 'unavailable'}. Nothing is ever uploaded.</p>
       <div class="row">
@@ -204,6 +223,13 @@
   .row {
     display: flex;
     gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .check {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
   }
   .danger {
     color: var(--danger);

@@ -10,8 +10,8 @@ export interface DocRecord {
   modified: string;
 }
 
-type Kind = 'pdf' | 'annot';
-const FILE: Record<Kind, string> = { pdf: 'document.pdf', annot: 'annotations.json' };
+type Kind = 'pdf' | 'annot' | 'report';
+const FILE: Record<Kind, string> = { pdf: 'document.pdf', annot: 'annotations.json', report: 'report.pdf' };
 
 interface Backend {
   put(sha: string, kind: Kind, data: Uint8Array): Promise<void>;
@@ -140,6 +140,15 @@ export const storage = {
   async loadAnnotations(sha: string): Promise<string | null> {
     const bytes = await (await pick()).get(sha, 'annot');
     return bytes ? decoder.decode(bytes) : null;
+  },
+
+  /** The grading report kept next to the paper (§8.4). */
+  async saveReport(sha: string, bytes: Uint8Array): Promise<void> {
+    await (await pick()).put(sha, 'report', bytes);
+  },
+
+  async loadReport(sha: string): Promise<Uint8Array | null> {
+    return (await pick()).get(sha, 'report');
   },
 
   async list(): Promise<DocRecord[]> {
