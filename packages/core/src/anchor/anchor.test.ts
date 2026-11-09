@@ -99,6 +99,26 @@ describe('quote anchoring', () => {
     expect(resolveTextAnchor({ type: 'text', quote: { exact: 'not in this paper' } }, indexes).status).toBe('unresolved');
   });
 
+  it('matches fuzzily within 10 % edit distance and stores what the document says', () => {
+    const r = resolveTextAnchor({ type: 'text', page: 1, quote: { exact: 'intermedate value theorm' } }, indexes);
+    expect(r.status).toBe('ok');
+    expect(r.quote?.exact).toBe('intermediate value theorem');
+    expect(r.quads!.length).toBeGreaterThan(0);
+    // A tolerated typo in a longer quote, without a page.
+    const longer = resolveTextAnchor({ type: 'text', quote: { exact: 'differentable on its interor' } }, indexes);
+    expect(longer.status).toBe('ok');
+  });
+
+  it('does not match fuzzily beyond the budget, nor for short quotes, nor when not unique', () => {
+    expect(findQuote({ exact: 'intermediate value theorem' }, indexes).fuzzy).toBe(false);
+    expect(findQuote({ exact: 'intermxxxte value thxxrem' }, indexes).status).toBe('unresolved');
+    expect(findQuote({ exact: 'continuus' }, indexes).status).toBe('unresolved');
+    // Two near-identical places stay ambiguous, with candidates reported.
+    const amb = resolveTextAnchor({ type: 'text', quote: { exact: 'The map f is continous on the closed interval' } }, indexes);
+    expect(amb.status).toBe('ambiguous');
+    expect(amb.candidates).toHaveLength(2);
+  });
+
   it('round-trips quads → quote → quads', () => {
     const r = resolveTextAnchor({ type: 'text', quote: { exact: 'intermediate value theorem' } }, indexes);
     const t = indexes[0]!.page;

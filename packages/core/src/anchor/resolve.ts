@@ -3,8 +3,11 @@ import type { Annotation, AnchorStatus, Rect, TextAnchor, TextQuote } from '../m
 import { normalizeContext, normalizeQuote, normalizeText, type NormText } from './normalize.ts';
 
 // Anchor resolution (spec §9.2): quote → quads by matching normalized text, and quads → quote by
-// collecting the characters under the quads. Fuzzy matching arrives in phase 3; until then a quote
-// that does not occur exactly (after normalization) is `unresolved`.
+// collecting the characters under the quads. A quote that does not occur exactly (after
+// normalization) is matched fuzzily: normalized edit distance ≤ FUZZY_MAX, accepted only if unique.
+
+/** Largest accepted edit distance relative to the quote length (spec §9.2). */
+export const FUZZY_MAX = 0.1;
 
 /** Length of stored quote prefix and suffix (spec §7.5). */
 export const CONTEXT_LENGTH = 32;
@@ -75,6 +78,76 @@ export class PageIndex {
     // Drop matches nested in another match (same text found via both views with different extents).
     return out.filter((m, i) => !out.some((o, j) => j !== i && o.start <= m.start && o.end >= m.end && (o.start !== m.start || o.end !== m.end)));
   }
+
+  /**
+   * Approximate occurrences of an already normalized needle: non-overlapping ranges whose edit
+   * distance to the needle is at most `maxRate` × needle length, best first within each region.
+   */
+  findFuzzy(needle: string, maxRate = FUZZY_MAX): Match[] {
+    const budget = Math.floor(needle.length * maxRate);
+    if (budget < 1) return [];
+    const found: (Match & { dist: number })[] = [];
+    for (const view of [this.joined, this.kept]) {
+      for (const h of approximate(view.text, needle, budget)) {
+        // Edits at the edges often cut a word in two; quotes are whole words, so extend to the boundary.
+        const word = /[\p{L}\p{N}]/u;
+        let [s, e] = [h.start, h.end];
+        if (word.test(needle[0]!)) while (s > 0 && word.test(view.text[s - 1]!) && word.test(view.text[s]!)) s--;
+        if (word.test(needle[needle.length - 1]!)) while (e < view.text.length && word.test(view.text[e]!) && word.test(view.text[e - 1]!)) e++;
+        const start = view.map[s]!;
+        const last = view.map[e - 1]!;
+        found.push({ page: this.page.page, start, end: last + codeUnitLength(this.page.text, last), dist: h.dist });
+      }
+    }
+    // Best first; drop candidates overlapping a better one (both views often find the same place).
+    found.sort((a, b) => a.dist - b.dist || a.start - b.start);
+    const kept: (Match & { dist: number })[] = [];
+    for (const f of found) if (!kept.some((k) => f.start < k.end && k.start < f.end)) kept.push(f);
+    return kept.sort((a, b) => a.start - b.start).map(({ page, start, end }) => ({ page, start, end }));
+  }
+}
+
+/**
+ * Sellers' approximate substring matching: ranges [start, end) of `text` within `budget` edits of
+ * `needle`, one per region (the cheapest, then the one closest in length to the needle).
+ */
+function approximate(text: string, needle: string, budget: number): { start: number; end: number; dist: number }[] {
+  const m = needle.length;
+  let dist = new Array<number>(m + 1);
+  let from = new Array<number>(m + 1);
+  for (let i = 0; i <= m; i++) {
+    dist[i] = i;
+    from[i] = 0;
+  }
+  const hits: { start: number; end: number; dist: number }[] = [];
+  for (let j = 1; j <= text.length; j++) {
+    const nd = new Array<number>(m + 1);
+    const nf = new Array<number>(m + 1);
+    nd[0] = 0;
+    nf[0] = j;
+    for (let i = 1; i <= m; i++) {
+      const sub = dist[i - 1]! + (needle[i - 1] === text[j - 1] ? 0 : 1);
+      const del = dist[i]! + 1;
+      const ins = nd[i - 1]! + 1;
+      if (sub <= del && sub <= ins) {
+        nd[i] = sub;
+        nf[i] = from[i - 1]!;
+      } else if (del <= ins) {
+        nd[i] = del;
+        nf[i] = from[i]!;
+      } else {
+        nd[i] = ins;
+        nf[i] = nf[i - 1]!;
+      }
+    }
+    if (nd[m]! <= budget) hits.push({ start: nf[m]!, end: j, dist: nd[m]! });
+    dist = nd;
+    from = nf;
+  }
+  hits.sort((a, b) => a.dist - b.dist || Math.abs(a.end - a.start - m) - Math.abs(b.end - b.start - m) || a.start - b.start);
+  const kept: typeof hits = [];
+  for (const h of hits) if (!kept.some((k) => h.start < k.end && k.start < h.end)) kept.push(h);
+  return kept;
 }
 
 function codeUnitLength(s: string, i: number): number {
@@ -157,16 +230,21 @@ function contextFor(page: PageText, m: Match): string {
  * Find the source range of a quote. `pages` must contain the page index for `page` if given,
  * else all pages of the document.
  */
-export function findQuote(quote: TextQuote, indexes: PageIndex[], page?: number): { status: AnchorStatus; match?: Match; matches: Match[] } {
+export function findQuote(quote: TextQuote, indexes: PageIndex[], page?: number): { status: AnchorStatus; match?: Match; matches: Match[]; fuzzy: boolean } {
   const needle = normalizeQuote(quote.exact);
   const scope = page === undefined ? indexes : indexes.filter((x) => x.page.page === page);
-  const matches = scope.flatMap((x) => x.find(needle));
-  if (matches.length === 1) return { status: 'ok', match: matches[0]!, matches };
-  if (matches.length === 0) return { status: 'unresolved', matches };
+  let matches = scope.flatMap((x) => x.find(needle));
+  let fuzzy = false;
+  if (matches.length === 0) {
+    matches = scope.flatMap((x) => x.findFuzzy(needle));
+    fuzzy = matches.length > 0;
+  }
+  if (matches.length === 1) return { status: 'ok', match: matches[0]!, matches, fuzzy };
+  if (matches.length === 0) return { status: 'unresolved', matches, fuzzy };
   // Disambiguate by prefix/suffix similarity.
   const prefix = quote.prefix ? normalizeContext(quote.prefix) : '';
   const suffix = quote.suffix ? normalizeContext(quote.suffix) : '';
-  if (!prefix && !suffix) return { status: 'ambiguous', matches };
+  if (!prefix && !suffix) return { status: 'ambiguous', matches, fuzzy };
   const scored = matches.map((m) => {
     const idx = indexes.find((x) => x.page.page === m.page)!;
     const before = normalizeText(idx.page.text.slice(Math.max(0, m.start - 4 * CONTEXT_LENGTH), m.start), true).text;
@@ -177,8 +255,8 @@ export function findQuote(quote: TextQuote, indexes: PageIndex[], page?: number)
     return { m, score: commonSuffix(b, prefix) + commonPrefix(a, suffix) };
   });
   scored.sort((x, y) => y.score - x.score);
-  if (scored[0]!.score > 0 && scored[0]!.score > scored[1]!.score) return { status: 'ok', match: scored[0]!.m, matches };
-  return { status: 'ambiguous', matches };
+  if (scored[0]!.score > 0 && scored[0]!.score > scored[1]!.score) return { status: 'ok', match: scored[0]!.m, matches, fuzzy };
+  return { status: 'ambiguous', matches, fuzzy };
 }
 
 /**
@@ -203,8 +281,11 @@ export function resolveTextAnchor(anchor: TextAnchor, indexes: PageIndex[]): Res
   const m = found.match;
   const idx = indexes.find((x) => x.page.page === m.page)!;
   const derived = quoteForRange(idx.page, m.start, m.end);
-  // Keep the caller's exact text but complete missing context from the document.
-  const quote: TextQuote = { ...anchor.quote, prefix: anchor.quote.prefix ?? derived.prefix, suffix: anchor.quote.suffix ?? derived.suffix };
+  // Keep the caller's exact text but complete missing context from the document; a fuzzy match
+  // replaces it by what the document really says, so the next resolution is exact.
+  const quote: TextQuote = found.fuzzy
+    ? { ...anchor.quote, exact: derived.exact, prefix: derived.prefix, suffix: derived.suffix }
+    : { ...anchor.quote, prefix: anchor.quote.prefix ?? derived.prefix, suffix: anchor.quote.suffix ?? derived.suffix };
   return { status: 'ok', page: m.page, quads: quadsForRange(idx.page, m.start, m.end), quote, candidates };
 }
 
