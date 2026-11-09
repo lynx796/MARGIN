@@ -5,6 +5,9 @@ import { PdfDoc } from '../pdf/document.ts';
 import { documentGeometry, layoutDocument, resolveAll } from '../pipeline.ts';
 import { fixturePdf, testFonts } from '../test/fixtures.ts';
 import { renderPdf, type RenderOptions } from './render.ts';
+import { embeddedFiles, importExported } from './embedded.ts';
+import { serialize } from '../model/serialize.ts';
+import { PDFArray, PDFDict, PDFDocument, PDFName } from '@cantoo/pdf-lib';
 
 let options: RenderOptions;
 let file: AnnotFile;
@@ -63,5 +66,82 @@ describe('renderPdf', () => {
     expect(pdf.getProducer()).toBe('Margin test');
     expect(pdf.getModificationDate()?.toISOString()).toBe('2026-11-08T13:00:00.000Z');
     expect(pdf.getAuthor()).toBeUndefined();
+  });
+
+  it('attaches the annotation file and re-imports it loss-free (§8.2)', async () => {
+    const bytes = await renderPdf(options);
+    const files = await embeddedFiles(bytes);
+    expect([...files.keys()]).toEqual(['margin.annot.json']);
+    const imported = await importExported(bytes);
+    expect(serialize(imported!.file)).toBe(serialize(file));
+    expect(imported!.original).toBeUndefined();
+  });
+
+  it('attaches the original only with embedOriginal, and verifies it', async () => {
+    const withOriginal = { ...options, file: { ...file, settings: { ...file.settings, embedOriginal: true } } };
+    const bytes = await renderPdf(withOriginal);
+    const imported = await importExported(bytes);
+    expect(Buffer.compare(Buffer.from(imported!.original!), Buffer.from(options.pdfBytes))).toBe(0);
+    expect(bytes.length).toBeGreaterThan((await renderPdf(options)).length + options.pdfBytes.length / 2);
+  });
+
+  it('returns undefined for a PDF Margin did not export', async () => {
+    expect(await importExported(options.pdfBytes)).toBeUndefined();
+  });
+
+  it('exports exactly the annotated pages without a report', async () => {
+    const pdf = await PDFDocument.load(await renderPdf(options));
+    expect(pdf.getPageCount()).toBe(options.geometry.pages.length);
+  });
+
+  it('places a report before or after, scaled to the page width, without annotating it (§8.4)', async () => {
+    const report = (await fixturePdf('plain')).bytes;
+    const n = options.geometry.pages.length;
+    const g0 = options.geometry.pages[0]!;
+    const rep = await PDFDocument.load(report);
+    const before = await PDFDocument.load(await renderPdf({ ...options, report: { bytes: report, position: 'before' } }));
+    expect(before.getPageCount()).toBe(n + rep.getPageCount());
+    expect(before.getPage(0).getWidth()).toBeCloseTo(g0.outWidth, 3);
+    const after = await PDFDocument.load(await renderPdf({ ...options, report: { bytes: report, position: 'after' } }));
+    expect(after.getPageCount()).toBe(n + rep.getPageCount());
+    expect(after.getPage(n).getWidth()).toBeCloseTo(options.geometry.pages.at(-1)!.outWidth, 3);
+    // The annotated pages are still where they were, after the report.
+    const text = await PdfDoc.open(await renderPdf({ ...options, report: { bytes: report, position: 'before' } }));
+    expect((await text.text(rep.getPageCount() + 1)).text).toContain('Kerning test');
+    await text.destroy();
+  });
+
+  it('turns resolved \\ref into GoTo links and leaves dangling ones as text', async () => {
+    const f: AnnotFile = { ...file, annotations: file.annotations.map((a) => ({ ...a })) };
+    f.annotations[0]!.body = `See \\ref{${f.annotations[2]!.id} } and \\ref{${f.annotations[2]!.id}}.`.replace(' }', '}');
+    const layout = await layoutDocument(f, options.geometry, testFonts());
+    const bytes = await renderPdf({ ...options, file: f, layout });
+    const pdf = await PDFDocument.load(bytes);
+    const annots = pdf.getPage(0).node.lookup(PDFName.of('Annots'), PDFArray);
+    expect(annots.size()).toBe(2);
+    const link = pdf.context.lookup(annots.get(0), PDFDict);
+    expect(link.get(PDFName.of('Subtype'))).toEqual(PDFName.of('Link'));
+    const dest = link.lookup(PDFName.of('Dest'), PDFArray);
+    // Target comment is on page 2.
+    expect(dest.get(0)).toBe(pdf.getPage(1).ref);
+  });
+
+  it('inserts a notes page after a page that spilled comments', async () => {
+    const f: AnnotFile = { ...file, annotations: [] };
+    const doc = await fixturePdf('plain');
+    const quotes = ['differentiable on its', 'fluffy notion', 'The map f is continuous', 'right margin'];
+    const long = Array.from({ length: 260 }, (_, i) => `word${i}`).join(' ');
+    quotes.forEach((q, i) => f.annotations.push({ id: `n0000${i + 1}`, category: 'remark', body: long, side: 'auto', origin: 'human', anchor: { type: 'text', page: 1, quote: { exact: q } }, created: '2026-11-08T10:00:00Z', modified: '2026-11-08T10:00:00Z' }));
+    await resolveAll(doc, f);
+    const geometry = await documentGeometry(doc, f);
+    const layout = await layoutDocument(f, geometry, testFonts());
+    const page1 = layout.pages[0]!;
+    if (!page1.notes) throw new Error('fixture did not overflow');
+    const pdf = await PDFDocument.load(await renderPdf({ ...options, file: f, layout, geometry }));
+    expect(pdf.getPageCount()).toBe(geometry.pages.length + page1.notes.length);
+    const out = await PdfDoc.open(await renderPdf({ ...options, file: f, layout, geometry }));
+    expect((await out.text(2)).text).toContain('word0');
+    expect(out.pages[1]!.width).toBeCloseTo(geometry.pages[0]!.outWidth, 1);
+    await out.destroy();
   });
 });

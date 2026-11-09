@@ -17,7 +17,7 @@
 
   const badges = $derived([
     { key: 'unresolved', n: app.unplaced.length, text: (n: number) => `${n} unresolved anchor${n > 1 ? 's' : ''}`, tip: 'Annotations whose quote was not found or is ambiguous' },
-    { key: 'overflow', n: app.overflowPages.length, text: (n: number) => `${n} page${n > 1 ? 's' : ''} overflow`, tip: 'Comments do not fit the margins on these pages' },
+    { key: 'overflow', n: app.overflowPages.length, text: (n: number) => `${n} page${n > 1 ? 's' : ''} overflow`, tip: 'Some comments were moved to notes pages (smaller type did not fit them)' },
     { key: 'review', n: app.unreviewed.length, text: (n: number) => `${n} AI comment${n > 1 ? 's' : ''} to review`, tip: 'Agent comments not yet accepted; click to list them' },
     { key: 'math', n: app.mathErrorCount, text: (n: number) => `${n} math error${n > 1 ? 's' : ''}`, tip: 'TeX errors in comments (shown in red)' },
   ].filter((b) => b.n > 0));

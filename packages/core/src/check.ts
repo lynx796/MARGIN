@@ -31,7 +31,7 @@ export function checkFile(file: AnnotFile, opts: { pdfSha256?: string; diagnosti
   if (d) {
     for (const e of d.mathErrors) problems.push({ code: 'math-error', severity: 'error', path: path(e.id, '/body'), message: `${e.id}: TeX error: ${e.message}` });
     for (const r of d.danglingRefs) problems.push({ code: 'dangling-ref', severity: 'error', path: path(r.id, '/body'), message: `${r.id}: \\ref{${r.target}} points to no comment.` });
-    for (const o of d.overflow) problems.push({ code: 'overflow', severity: 'warning', path: `/pages/${o.page}`, message: `Page ${o.page}: comments do not fit the margins (${o.ids.join(', ')}).` });
+    for (const o of d.overflow) problems.push({ code: 'overflow', severity: 'warning', path: `/pages/${o.page}`, message: `Page ${o.page}: comments moved to a notes page (${o.ids.join(', ')}).` });
   }
   return problems;
 }

@@ -79,6 +79,8 @@ export interface PageItem {
   side?: 'left' | 'right';
   /** Comment box `[x, y, w, h]` in output coordinates; absent for highlights. */
   box?: [number, number, number, number];
+  /** True when the comment was spilled to a notes page; `box` is then its small margin tag. */
+  spilled?: true;
   /** Anchor rectangles in output coordinates: one per line fragment, or the region rectangle. */
   anchor: [number, number, number, number][];
 }
@@ -89,11 +91,31 @@ export interface PageLayout {
   height: number;
   /** Font size used for comments on this page (may be stepped down on overflow). */
   fontSize: number;
-  /** Comments that did not fit their column even after reassignment. */
+  /** Comments spilled to notes pages after the font step-down was exhausted (§6.7). */
   overflow: string[];
   /** One entry per placed annotation, sorted by id. */
   items: PageItem[];
   prims: Prim[];
+  /** Cross-references (`\ref`) in comment boxes: clickable areas pointing at another comment. */
+  links?: LinkRect[];
+  /** Notes pages inserted directly after this page for spilled comments. */
+  notes?: NotesPage[];
+}
+
+/** A clickable area `[x, y, w, h]` in output coordinates that jumps to comment `target`. */
+export interface LinkRect {
+  rect: [number, number, number, number];
+  target: string;
+}
+
+/** An extra page of the same size as its source page holding the bodies of spilled comments. */
+export interface NotesPage {
+  width: number;
+  height: number;
+  /** Placed note boxes, for link targets. */
+  items: { id: string; box: [number, number, number, number] }[];
+  prims: Prim[];
+  links?: LinkRect[];
 }
 
 export interface Layout {

@@ -46,10 +46,13 @@ export interface CommentBox {
   mathErrors: string[];
   /** Dangling \ref targets. */
   danglingRefs: string[];
+  /** Resolved \ref occurrences as `[x, y, w, h]` relative to the box origin, for PDF links (§6.8). */
+  refs: { target: string; rect: [number, number, number, number] }[];
 }
 
+type TextPiece = { kind: 'text'; font: FontKey; color: Color; text: string; advances: number[]; width: number; ref?: string };
 type Piece =
-  | { kind: 'text'; font: FontKey; color: Color; text: string; advances: number[]; width: number }
+  | TextPiece
   | { kind: 'math'; box: MathBox; scale: number; width: number };
 
 /** A run of pieces with no breakpoint inside. */
@@ -78,12 +81,13 @@ export function layoutBox(body: string, o: BoxOptions): CommentBox {
   const contentW = Math.max(10, o.width - contentX - BOX_PADDING);
   const mathErrors: string[] = [];
   const danglingRefs: string[] = [];
+  const refs: CommentBox['refs'] = [];
 
   const numberText = o.number !== undefined ? String(o.number) : '';
   const numberShaped = numberText ? o.fonts.shape('sans', numberText, NUMBER_SIZE) : undefined;
   const firstLineW = numberShaped ? contentW - numberShaped.width - 3 : contentW;
 
-  const textPiece = (font: FontKey, color: Color, text: string): Piece => {
+  const textPiece = (font: FontKey, color: Color, text: string): TextPiece => {
     const s = o.fonts.shape(font, text, fs);
     return { kind: 'text', font, color, text, advances: s.advances, width: s.width };
   };
@@ -123,7 +127,8 @@ export function layoutBox(body: string, o: BoxOptions): CommentBox {
       if (item.kind === 'ref') {
         const n = o.refNumber(item.id);
         if (n === undefined) danglingRefs.push(item.id);
-        addPiece(textPiece(fontFor(item.style), n === undefined ? ERROR_COLOR : TEXT_COLOR, n === undefined ? '??' : String(n)));
+        const piece = textPiece(fontFor(item.style), n === undefined ? ERROR_COLOR : TEXT_COLOR, n === undefined ? '??' : String(n));
+        addPiece(n === undefined ? piece : { ...piece, ref: item.id });
         continue;
       }
       const font = fontFor(item.style);
@@ -246,6 +251,7 @@ export function layoutBox(body: string, o: BoxOptions): CommentBox {
       }
       for (const p of c.pieces) {
         if (p.kind === 'text') {
+          if (p.ref) refs.push({ target: p.ref, rect: [x, baseline - 0.8 * fs, p.width, fs] });
           if (run && run.font === p.font && run.color === p.color) {
             run = { ...run, text: run.text + p.text, advances: [...run.advances, ...p.advances], width: run.width + p.width };
           } else {
@@ -305,5 +311,5 @@ export function layoutBox(body: string, o: BoxOptions): CommentBox {
       x: o.width - BOX_PADDING - numberShaped.width, y: BOX_PADDING + 0.75 * NUMBER_SIZE, text: numberText, advances: numberShaped.advances,
     });
   }
-  return { id: o.id, width: o.width, height, firstBaseline: firstBaseline ?? BOX_PADDING + above0, prims: [...decoration, ...prims], mathErrors, danglingRefs };
+  return { id: o.id, width: o.width, height, firstBaseline: firstBaseline ?? BOX_PADDING + above0, prims: [...decoration, ...prims], mathErrors, danglingRefs, refs };
 }
