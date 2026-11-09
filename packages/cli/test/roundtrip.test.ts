@@ -113,6 +113,9 @@ describe('grading report', () => {
     expect(r.code).toBe(0);
     expect(readFileSync('after.pdf').equals(readFileSync('with-report.pdf'))).toBe(false);
     expect(await pageCount('after.pdf')).toBe(await pageCount('with-report.pdf'));
+    expect(JSON.parse(readFileSync('paper.annot.json', 'utf8')).report.position).toBe('after');
+    await margin('export', 'paper.pdf', '--position', 'before', '-o', 'back.pdf');
+    expect(readFileSync('back.pdf').equals(readFileSync('with-report.pdf'))).toBe(true);
   });
 
   it('warns when the report changed after it was attached, and fails when it is gone', async () => {

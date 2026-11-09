@@ -15,6 +15,14 @@
   const w = $derived(g.outWidth * app.zoom);
   const h = $derived(g.outHeight * app.zoom);
   const editingItem = $derived(app.editingId ? layout?.items.find((i) => i.id === app.editingId) : undefined);
+  // A comment spilled to a notes page (spec §6.7) only has a small tag here; edit it at full column width.
+  const editorBox = $derived.by((): [number, number, number, number] | undefined => {
+    const it = editingItem;
+    if (!it?.box) return undefined;
+    if (!it.spilled) return it.box;
+    const col = it.side === 'left' ? g.left : g.right;
+    return [col.x0, Math.min(it.box[1], g.bottom - 40), col.x1 - col.x0, 40];
+  });
 
   // ── Rendering ───────────────────────────────────────────────────────────────────────────────
   // The original page is drawn with transform T of spec §5.4: scale s, offset by the crop and centering.
@@ -212,8 +220,8 @@
 >
   <canvas bind:this={canvas} style="width:{w}px; height:{h}px"></canvas>
   <Overlay {g} {layout} />
-  {#if editingItem?.box}
-    <CommentEditor box={editingItem.box} fontSize={layout?.fontSize ?? 9} number={app.numberOf(app.editingId!)} />
+  {#if editorBox}
+    <CommentEditor box={editorBox} fontSize={layout?.fontSize ?? 9} number={app.numberOf(app.editingId!)} />
   {/if}
   <span class="label">{g.page}</span>
 </div>
