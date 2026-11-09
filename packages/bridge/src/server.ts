@@ -253,7 +253,9 @@ export async function startBridge(options: BridgeOptions): Promise<Bridge> {
       const current = existsSync(abs) ? readFileSync(abs, 'utf8') : null;
       const tag = current === null ? null : etagOf(current);
       if (req.method === 'GET') {
-        if (current === null) throw new HttpError(404, `No annotation file for ${rel}.`, 'not-found');
+        if (!existsSync(pdfPath(rel))) throw new HttpError(404, `${rel} does not exist.`, 'not-found');
+        // No annotation file yet is a normal state, not an error (browsers log 404s as errors).
+        if (current === null) return send(res, 204, '', 'application/json', cors);
         known.set(annotNameFor(rel), tag);
         return send(res, 200, current, 'application/json; charset=utf-8', { ...cors, ETag: `"${tag}"` });
       }
@@ -321,7 +323,7 @@ export async function startBridge(options: BridgeOptions): Promise<Bridge> {
         const origin = req.headers.origin;
         if (origin) {
           if (isApi && !originAllowed(origin)) throw new HttpError(403, `Origin ${origin} is not allowed. Start margin serve with --allow-origin ${origin}.`, 'forbidden');
-          if (originAllowed(origin)) cors = { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' };
+          if (originAllowed(origin)) cors = { 'Access-Control-Allow-Origin': origin, 'Access-Control-Expose-Headers': 'ETag', Vary: 'Origin' };
         }
         if (req.method === 'OPTIONS') {
           // CORS and Private Network Access preflight: answered only for allowed origins (rejected above).
@@ -329,6 +331,7 @@ export async function startBridge(options: BridgeOptions): Promise<Bridge> {
             ...cors,
             'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
             'Access-Control-Allow-Headers': 'authorization, content-type, if-match',
+            'Access-Control-Expose-Headers': 'ETag',
             'Access-Control-Allow-Private-Network': 'true',
             'Access-Control-Max-Age': '600',
           });

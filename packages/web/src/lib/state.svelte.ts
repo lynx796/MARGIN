@@ -1,5 +1,9 @@
 import {
   computeGeometry,
+  describeMerge,
+  mergeExternal,
+  sameValue,
+  sha256Hex,
   computeLayout,
   createAnnotFile,
   isoSeconds,
@@ -19,6 +23,7 @@ import {
   type Annotation,
   type AnnotFile,
   type Category,
+  type Conflict,
   type DocGeometry,
   type FontSet,
   type LayoutResult,
@@ -29,6 +34,7 @@ import {
   type Side,
 } from '@margin/core';
 import { loadFontBytes, loadFonts } from './fonts.ts';
+import { BridgeClient, BridgeError, connectionFromLocation, forgetConnection, type BridgeConnection, type BridgeEvent, type BridgeFile } from './bridge.ts';
 import { storage, type DocRecord } from './storage.ts';
 import { exportInWorker } from './exporter.ts';
 
@@ -56,9 +62,13 @@ export interface Draft {
   category: string;
 }
 
+/** Origin filter of the sidebar; `unreviewed` is agent comments a human has not accepted yet (spec §9.4). */
+export type OriginFilter = '' | 'human' | 'agent' | 'unreviewed';
+
 export type SearchHit = { kind: 'text'; page: number; quads: Rect[] } | { kind: 'comment'; id: string };
 
 const MAX_HISTORY = 200;
+const encoder = new TextEncoder();
 
 function now(): string {
   return isoSeconds(new Date());
@@ -75,6 +85,11 @@ function download(name: string, data: Blob): void {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
+/** Text annotations that still lack geometry (written by an agent or by hand). */
+function needsResolving(file: AnnotFile): Annotation[] {
+  return file.annotations.filter((a) => a.anchor.type === 'text' && (!a.anchor.quads || a.anchor.page === undefined));
+}
+
 class App {
   // ── Document ────────────────────────────────────────────────────────────────────────────────
   pdf = $state.raw<PdfDoc | null>(null);
@@ -87,6 +102,14 @@ class App {
   mismatch = $state(false);
   recent = $state.raw<DocRecord[]>([]);
   storageKind = $state<'opfs' | 'indexeddb' | null>(null);
+
+  // ── Bridge (spec §9.3) ──────────────────────────────────────────────────────────────────────
+  bridge = $state.raw<{ origin: string; dir: string; files: BridgeFile[]; online: boolean } | null>(null);
+  /** Path of the open document within the bridge directory, if it was opened from there. */
+  bridgePath = $state<string | null>(null);
+  /** Changes of the local text lost against changes on disk (spec §9.3), kept so they can be restored. */
+  conflicts = $state.raw<Conflict[]>([]);
+  originFilter = $state<OriginFilter>('');
 
   // ── View ────────────────────────────────────────────────────────────────────────────────────
   /** CSS px per output pt. */
@@ -133,12 +156,38 @@ class App {
   private toastId = 0;
   private scrollNonce = 0;
 
+  private client: BridgeClient | null = null;
+  private stopFollowing: (() => void) | undefined;
+  /** The annotation file as last exchanged with the disk, and its ETag (SHA-256 of the text). */
+  private bridgeBase: AnnotFile | null = null;
+  private bridgeEtag: string | null = null;
+  private bridgeDirty = false;
+  /** ETags of our own writes, whose change events must not be pulled back in. */
+  private ownEtags: string[] = [];
+  private bridgeChain: Promise<void> = Promise.resolve();
+  private listTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Test hook: hold back writes to the bridge so that a conflict can be provoked. */
+  bridgeWritesPaused = false;
+  private labels = new WeakMap<AnnotFile, string>();
+
   // ── Derived ─────────────────────────────────────────────────────────────────────────────────
   get canUndo(): boolean {
     return this.past.length > 0 && this.editingId === null;
   }
   get canRedo(): boolean {
     return this.future.length > 0 && this.editingId === null;
+  }
+  /** What the next undo reverts, when that step has a label (e.g. an agent's changes). */
+  get undoLabel(): string | null {
+    return (this.file && this.labels.get(this.file)) ?? null;
+  }
+  /** Agent comments no human has accepted yet. */
+  get unreviewed(): Annotation[] {
+    return this.annotations.filter((a) => a.origin === 'agent' && !a.reviewed);
+  }
+  isUnreviewed(id: string): boolean {
+    const a = this.annotation(id);
+    return !!a && a.origin === 'agent' && !a.reviewed;
   }
   get categories(): Category[] {
     return this.file?.categories ?? [];
@@ -197,6 +246,8 @@ class App {
     } catch {
       this.storageKind = null;
     }
+    const conn = connectionFromLocation();
+    if (conn) await this.connectBridge(conn);
   }
 
   toast(text: string, kind: Toast['kind'] = 'info', ms = 5000): void {
@@ -256,7 +307,7 @@ class App {
     await this.openPdf(bytes, rec.name);
   }
 
-  async openPdf(bytes: Uint8Array, name: string, annotText?: string): Promise<void> {
+  async openPdf(bytes: Uint8Array, name: string, annotText?: string, bridge?: { path: string; etag: string | null }): Promise<void> {
     this.loading = 'Opening PDF…';
     try {
       const pdf = await PdfDoc.open(bytes);
@@ -265,7 +316,7 @@ class App {
       if (annotText !== undefined) {
         file = parseAnnotFile(annotText);
         mismatch = file.document.sha256 !== pdf.sha256;
-      } else {
+      } else if (!bridge) {
         const stored = await storage.loadAnnotations(pdf.sha256);
         if (stored) {
           try {
@@ -280,9 +331,9 @@ class App {
         const defaults = await storage.getSetting<Category[]>('defaultCategories').catch(() => undefined);
         if (defaults?.length) file.categories = defaults.map((c) => ({ ...c }));
       }
-      if (file.annotations.some((a) => a.anchor.type === 'text' && (!a.anchor.quads || a.anchor.page === undefined)) && !mismatch) {
+      if (!mismatch && needsResolving(file).length) {
         this.loading = 'Resolving anchors…';
-        await resolveAll(pdf, file);
+        await resolveAll(pdf, { ...file, annotations: needsResolving(file) });
       }
       this.loading = 'Measuring pages…';
       const inks = await measureInk(pdf);
@@ -302,12 +353,18 @@ class App {
       this.focusedId = null;
       this.activeCategory = file.categories.find((c) => c.kind === 'comment')?.id ?? file.categories[0]?.id ?? '';
       this.currentPage = 1;
+      this.bridgePath = bridge?.path ?? null;
+      this.bridgeBase = bridge ? structuredClone(file) : null;
+      this.bridgeEtag = bridge?.etag ?? null;
+      this.bridgeDirty = false;
+      this.conflicts = [];
+      this.originFilter = '';
       this.rebuildGeometry();
       this.zoom = this.fitZoom();
       this.fitPending = true;
       await this.relayout();
       await storage.savePdf({ sha: pdf.sha256, name, pageCount: pdf.pageCount }, bytes).catch(() => undefined);
-      this.scheduleSave();
+      this.scheduleSave(false);
       if (mismatch) this.toast('This PDF differs from the one the annotations were made on. Use "Re-anchor" to find the quotes again.', 'warn', 12000);
     } finally {
       this.loading = null;
@@ -316,8 +373,12 @@ class App {
 
   async closeDocument(): Promise<void> {
     await this.flushSave();
+    await this.bridgeChain;
     await this.pdf?.destroy().catch(() => undefined);
     this.pdf = null;
+    this.bridgePath = null;
+    this.bridgeBase = null;
+    this.conflicts = [];
     this.file = null;
     this.geometry = null;
     this.layout = null;
@@ -325,6 +386,7 @@ class App {
     this.draft = null;
     this.pending = null;
     this.recent = await storage.list().catch(() => []);
+    if (this.client) void this.refreshBridgeFiles();
   }
 
   /** "Forget this document" (spec §11). */
@@ -421,14 +483,14 @@ class App {
 
   // ── Model changes with history ──────────────────────────────────────────────────────────────
 
-  private afterChange(prev: AnnotFile | null, next: AnnotFile): void {
+  private afterChange(prev: AnnotFile | null, next: AnnotFile, dirty = true): void {
     if (!prev || prev.settings !== next.settings) this.rebuildGeometry();
     void this.relayout();
-    this.scheduleSave();
+    this.scheduleSave(dirty);
   }
 
   /** Apply a change as one undo step. Returning the same object means "nothing changed". */
-  mutate(fn: (f: AnnotFile) => AnnotFile): void {
+  mutate(fn: (f: AnnotFile) => AnnotFile, label?: string): void {
     const prev = this.file;
     if (!prev) return;
     const next = fn(prev);
@@ -436,6 +498,7 @@ class App {
     this.past = [...this.past.slice(-(MAX_HISTORY - 1)), prev];
     this.future = [];
     this.file = next;
+    if (label) this.labels.set(next, label);
     this.afterChange(prev, next);
   }
 
@@ -578,10 +641,49 @@ class App {
       void this.relayout();
       return;
     }
+    // Changing an agent's comment is a review of it.
     this.mutate((f) => ({
       ...f,
-      annotations: f.annotations.map((a) => (a.id === id ? { ...a, body: draft.body.trim(), category: draft.category, modified: now() } : a)),
+      annotations: f.annotations.map((a) => (a.id === id ? { ...a, body: draft.body.trim(), category: draft.category, modified: now(), ...(a.origin === 'agent' ? { reviewed: true } : {}) } : a)),
     }));
+  }
+
+  // ── Reviewing agent comments (spec §9.4) ────────────────────────────────────────────────────
+
+  /** Enter on a focused agent comment: mark it reviewed. */
+  acceptComment(id: string): void {
+    if (!this.isUnreviewed(id)) return;
+    this.mutate((f) => ({ ...f, annotations: f.annotations.map((a) => (a.id === id ? { ...a, reviewed: true, modified: now() } : a)) }), 'accept comment');
+  }
+
+  /** "Accept all on page". */
+  acceptAllOnPage(page: number): void {
+    const ids = new Set(this.unreviewed.filter((a) => a.anchor.page === page).map((a) => a.id));
+    if (!ids.size) return;
+    this.mutate((f) => ({ ...f, annotations: f.annotations.map((a) => (ids.has(a.id) ? { ...a, reviewed: true, modified: now() } : a)) }), `accept ${ids.size} on page ${page}`);
+  }
+
+  acceptAll(): void {
+    const ids = new Set(this.unreviewed.map((a) => a.id));
+    if (!ids.size) return;
+    this.mutate((f) => ({ ...f, annotations: f.annotations.map((a) => (ids.has(a.id) ? { ...a, reviewed: true, modified: now() } : a)) }), `accept ${ids.size} comments`);
+  }
+
+  // ── Conflicts (spec §9.3) ───────────────────────────────────────────────────────────────────
+
+  /** Put the local version that lost against the disk back (or, if it had been deleted, delete again). */
+  restoreConflict(c: Conflict): void {
+    if (c.local) {
+      const local = c.local;
+      this.mutate((f) => ({ ...f, annotations: f.annotations.some((a) => a.id === c.id) ? f.annotations.map((a) => (a.id === c.id ? local : a)) : [...f.annotations, local] }), 'restore my version');
+    } else {
+      this.mutate((f) => ({ ...f, annotations: f.annotations.filter((a) => a.id !== c.id) }), 'restore my deletion');
+    }
+    this.dismissConflict(c.id);
+  }
+
+  dismissConflict(id: string): void {
+    this.conflicts = this.conflicts.filter((c) => c.id !== id);
   }
 
   deleteAnnotation(id: string): void {
@@ -754,13 +856,196 @@ class App {
     this.setCategories(() => DEFAULT_CATEGORIES.map((c) => ({ ...c })));
   }
 
+  // ── Bridge: connection, live sync and merge (spec §9.3) ─────────────────────────────────────
+
+  async connectBridge(conn: BridgeConnection): Promise<boolean> {
+    this.disconnectBridge();
+    const client = new BridgeClient(conn);
+    try {
+      const { dir, files } = await client.files();
+      this.client = client;
+      this.bridge = { origin: conn.origin, dir, files, online: true };
+    } catch (e) {
+      forgetConnection();
+      this.toast(e instanceof BridgeError && e.status === 401 ? 'The bridge refused the token. Use the URL printed by margin serve.' : `Cannot connect to the bridge: ${(e as Error).message}`, 'error', 9000);
+      return false;
+    }
+    this.stopFollowing = client.follow(
+      (ev) => this.onBridgeEvent(ev),
+      (online) => this.onBridgeStatus(online),
+    );
+    return true;
+  }
+
+  disconnectBridge(): void {
+    this.stopFollowing?.();
+    this.stopFollowing = undefined;
+    this.client = null;
+    this.bridge = null;
+    this.bridgePath = null;
+    forgetConnection();
+  }
+
+  private async refreshBridgeFiles(): Promise<void> {
+    if (!this.client || !this.bridge) return;
+    try {
+      const { files } = await this.client.files();
+      if (this.bridge) this.bridge = { ...this.bridge, files };
+    } catch {
+      /* offline: the status shows it */
+    }
+  }
+
+  /** Open a PDF from the bridge directory, with its annotation file if it has one. */
+  async openFromBridge(path: string): Promise<void> {
+    const client = this.client;
+    if (!client) return;
+    this.loading = 'Opening from the bridge…';
+    try {
+      const [bytes, annot] = await Promise.all([client.pdf(path), client.annot(path)]);
+      await this.openPdf(bytes, path.split('/').pop()!, annot?.text, { path, etag: annot?.etag ?? null });
+    } catch (e) {
+      this.toast(e instanceof MarginError || e instanceof BridgeError ? e.message : `Could not open ${path}: ${(e as Error).message}`, 'error', 9000);
+    } finally {
+      this.loading = null;
+    }
+  }
+
+  private onBridgeStatus(online: boolean): void {
+    if (!this.bridge) return;
+    const was = this.bridge.online;
+    this.bridge = { ...this.bridge, online };
+    if (online) {
+      void this.refreshBridgeFiles();
+      // Catch up on whatever changed while the stream was down.
+      if (this.bridgePath) void this.enqueue(() => this.pullBridge());
+    } else if (was) {
+      this.toast('Lost the connection to the bridge; retrying…', 'warn');
+    }
+  }
+
+  private onBridgeEvent(ev: BridgeEvent): void {
+    if (ev.kind === 'annot' && ev.path === this.bridgePath) {
+      const own = ev.etag ? this.ownEtags.indexOf(ev.etag) : -1;
+      if (own >= 0) {
+        this.ownEtags.splice(own, 1);
+        return;
+      }
+      if (ev.etag === this.bridgeEtag) return;
+      void this.enqueue(() => this.pullBridge());
+      return;
+    }
+    if (ev.kind === 'pdf' && ev.path === this.bridgePath && ev.etag !== this.pdf?.sha256) {
+      this.toast('The PDF changed on disk. Reopen it from the start screen to use the new version.', 'warn', 9000);
+    }
+    clearTimeout(this.listTimer);
+    this.listTimer = setTimeout(() => void this.refreshBridgeFiles(), 250);
+  }
+
+  /** Bridge operations run one at a time so that a pull never interleaves with a write. */
+  private enqueue(fn: () => Promise<void>): Promise<void> {
+    this.bridgeChain = this.bridgeChain.then(fn).catch((e) => this.toast(`Bridge: ${(e as Error).message}`, 'error', 9000));
+    return this.bridgeChain;
+  }
+
+  /** Write the annotation file through the bridge; if the disk moved on meanwhile, merge and retry. */
+  private async writeBridge(): Promise<void> {
+    const client = this.client;
+    const path = this.bridgePath;
+    if (!client || !path || !this.bridgeDirty) return;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const file = this.persistable();
+      if (!file) return;
+      const text = serialize(file);
+      const tag = await sha256Hex(encoder.encode(text));
+      this.ownEtags = [...this.ownEtags.slice(-19), tag];
+      const r = await client.putAnnot(path, text, this.bridgeEtag);
+      if (r.ok) {
+        this.bridgeEtag = r.etag;
+        this.bridgeBase = file;
+        this.bridgeDirty = this.persistable() !== file;
+        return;
+      }
+      this.ownEtags = this.ownEtags.filter((t) => t !== tag);
+      await this.pullBridge();
+    }
+    this.toast('The annotation file keeps changing on disk; your latest change is not written yet.', 'warn', 9000);
+  }
+
+  /** Read the annotation file from the bridge and merge what changed there into the open document. */
+  private async pullBridge(): Promise<void> {
+    const client = this.client;
+    const path = this.bridgePath;
+    const pdf = this.pdf;
+    const local = this.file;
+    const base = this.bridgeBase;
+    if (!client || !path || !pdf || !local || !base) return;
+    const got = await client.annot(path);
+    if (!got) {
+      this.bridgeEtag = null;
+      this.bridgeDirty = true;
+      this.toast('The annotation file was removed from disk; it is written again with the next change.', 'warn');
+      return;
+    }
+    if (got.etag === this.bridgeEtag) return;
+    let disk: AnnotFile;
+    try {
+      disk = parseAnnotFile(got.text);
+    } catch (e) {
+      this.bridgeEtag = got.etag;
+      this.toast(`The annotation file on disk is invalid and was ignored: ${(e as Error).message}`, 'error', 9000);
+      return;
+    }
+    // Annotations written without geometry (by an agent) are resolved before they are compared or shown.
+    const todo = needsResolving(disk);
+    if (todo.length && !this.mismatch) await resolveAll(pdf, { ...disk, annotations: todo });
+    if (this.file !== local) {
+      // The user changed something while we were reading; merge against the newest state instead.
+      return this.pullBridge();
+    }
+    const merged = mergeExternal(base, local, disk);
+    this.bridgeBase = disk;
+    this.bridgeEtag = got.etag;
+    this.bridgeDirty = !sameValue(merged.file, disk);
+    let conflicts = merged.conflicts;
+    if (this.pendingBase) this.pendingBase = mergeExternal(base, this.pendingBase, disk).file;
+    // A comment being edited that the disk deleted: keep the typed text as a conflict.
+    const editing = this.editingId;
+    if (editing && this.draft && !this.pendingBase && !merged.file.annotations.some((a) => a.id === editing)) {
+      const gone = local.annotations.find((a) => a.id === editing);
+      if (gone) conflicts = [...conflicts, { id: editing, local: { ...gone, body: this.draft.body, category: this.draft.category }, disk: null }];
+      this.editingId = null;
+      this.draft = null;
+    }
+    if (conflicts.length) {
+      this.conflicts = [...this.conflicts.filter((c) => !conflicts.some((n) => n.id === c.id)), ...conflicts];
+      this.toast(`${conflicts.length} comment${conflicts.length > 1 ? 's were' : ' was'} changed both here and on disk. The disk version was kept; yours is listed under Conflicts.`, 'warn', 9000);
+    }
+    if (!merged.changed) {
+      if (this.bridgeDirty) this.scheduleSave();
+      return;
+    }
+    const byAgent = [...merged.summary.added, ...merged.summary.edited].some((id) => merged.file.annotations.find((a) => a.id === id)?.origin === 'agent');
+    const label = `${byAgent ? 'agent' : 'disk'}: ${describeMerge(merged.summary)}`;
+    this.past = [...this.past.slice(-(MAX_HISTORY - 1)), local];
+    this.future = [];
+    this.file = merged.file;
+    this.labels.set(merged.file, label);
+    if (this.focusedId && !merged.file.annotations.some((a) => a.id === this.focusedId)) this.focusedId = null;
+    if (!merged.file.categories.some((c) => c.id === this.activeCategory)) this.activeCategory = merged.file.categories[0]?.id ?? '';
+    this.afterChange(local, merged.file, this.bridgeDirty);
+    this.toast(`${label} (Ctrl+Z undoes it)`);
+  }
+
   // ── Persistence, download and export ────────────────────────────────────────────────────────
 
   private persistable(): AnnotFile | null {
     return this.pendingBase ?? this.file;
   }
 
-  scheduleSave(): void {
+  /** Autosave soon. A change (not merely opening) also marks the file for writing through the bridge. */
+  scheduleSave(change = true): void {
+    if (change) this.bridgeDirty = true;
     clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => void this.flushSave(), 300);
   }
@@ -774,6 +1059,7 @@ class App {
     } catch (e) {
       this.toast(`Could not save to browser storage: ${(e as Error).message}`, 'error');
     }
+    if (this.client && this.bridgePath && this.bridgeDirty && !this.bridgeWritesPaused) await this.enqueue(() => this.writeBridge());
   }
 
   /** "Save annotations": download the .annot.json (spec §7.6). */
@@ -794,6 +1080,8 @@ class App {
     try {
       await this.relayout();
       const layout = this.layout!;
+      const open = this.unreviewed.length;
+      if (open) this.toast(`${open} agent comment${open > 1 ? 's are' : ' is'} not reviewed yet. ${open > 1 ? 'They are' : 'It is'} in the export.`, 'warn', 9000);
       if (this.unplaced.length) this.toast(`${this.unplaced.length} annotation${this.unplaced.length > 1 ? 's have' : ' has'} no anchor and ${this.unplaced.length > 1 ? 'are' : 'is'} not in the export.`, 'warn');
       const bytes = await exportInWorker({
         pdfBytes: this.pdf.bytes,

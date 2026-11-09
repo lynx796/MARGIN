@@ -138,7 +138,8 @@ describe('file access', () => {
 
   it('creates an annotation file for a PDF that has none', async () => {
     const text = await (await api('/api/annot?path=plain.pdf')).text();
-    expect((await api('/api/annot?path=sub/second.pdf')).status).toBe(404);
+    expect((await api('/api/annot?path=sub/second.pdf')).status).toBe(204);
+    expect((await api('/api/annot?path=missing.pdf')).status).toBe(404);
     expect((await api('/api/annot?path=sub/second.pdf', { method: 'PUT', body: text })).status).toBe(200);
     expect((await api('/api/annot?path=sub/second.pdf')).status).toBe(200);
   });

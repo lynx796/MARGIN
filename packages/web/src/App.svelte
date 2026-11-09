@@ -77,7 +77,9 @@
       app.deleteAnnotation(app.focusedId);
     } else if (e.key === 'Enter' && app.focusedId && !(document.activeElement instanceof HTMLButtonElement)) {
       e.preventDefault();
-      app.startEdit(app.focusedId);
+      // Enter on an agent comment first accepts it (spec §9.4); Enter again edits.
+      if (app.isUnreviewed(app.focusedId)) app.acceptComment(app.focusedId);
+      else app.startEdit(app.focusedId);
     } else if (e.key === 'Escape') {
       if (app.searchOpen) app.clearSearch();
       else app.focus(null);

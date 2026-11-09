@@ -7,6 +7,8 @@ import { app } from './state.svelte.ts';
 export interface MarginTestApi {
   app: typeof app;
   /** Client-pixel rectangle of the first occurrence of `quote` on `page` (first line fragment). */
+  /** Hold back (or release) writes to the bridge, to provoke merge conflicts. */
+  pauseBridgeWrites(paused: boolean): void;
   quoteRect(page: number, quote: string): Promise<{ x0: number; y0: number; x1: number; y1: number } | null>;
 }
 
@@ -14,6 +16,10 @@ export function installTestHooks(): void {
   if (!new URLSearchParams(location.search).has('e2e')) return;
   const api: MarginTestApi = {
     app,
+    pauseBridgeWrites(paused) {
+      app.bridgeWritesPaused = paused;
+      if (!paused) void app.flushSave();
+    },
     async quoteRect(page, quote) {
       const text = await app.ensureText(page);
       const [m] = new PageIndex(text).find(normalizeQuote(quote));

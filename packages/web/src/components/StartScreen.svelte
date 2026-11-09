@@ -1,7 +1,21 @@
 <script lang="ts">
+  import { parseConnection } from '../lib/bridge.ts';
   import { app } from '../lib/state.svelte.ts';
 
   let input: HTMLInputElement;
+  let pasted = $state('');
+  let pasteError = $state('');
+
+  async function connect(e: SubmitEvent) {
+    e.preventDefault();
+    const conn = parseConnection(pasted);
+    if (!conn) {
+      pasteError = 'Paste the URL printed by margin serve (it ends in #token=…).';
+      return;
+    }
+    pasteError = '';
+    if (await app.connectBridge(conn)) pasted = '';
+  }
 
   function pick() {
     const files = [...(input.files ?? [])];
@@ -24,6 +38,35 @@
       <span>or drop it here, optionally together with its <code>.annot.json</code> file</span>
     </button>
     <input bind:this={input} type="file" accept=".pdf,application/pdf,.json,application/json" multiple hidden onchange={pick} data-testid="file-input" />
+
+    <h2>Local bridge</h2>
+    {#if app.bridge}
+      <div class="bridge" data-testid="bridge-panel">
+        <p class="m">
+          {app.bridge.online ? 'Connected' : 'Offline, retrying'} to <code>{app.bridge.dir}</code> via {app.bridge.origin}.
+          <button class="link" onclick={() => app.disconnectBridge()}>Disconnect</button>
+        </p>
+        <ul class="recent" data-testid="bridge-files">
+          {#each app.bridge.files as f (f.path)}
+            <li>
+              <button class="open" onclick={() => app.openFromBridge(f.path)} data-testid="bridge-file">
+                <span class="n">{f.path}</span>
+                <span class="m">{f.annotations ? 'annotated' : 'no annotations yet'} · {fmt(f.modified)}</span>
+              </button>
+            </li>
+          {:else}
+            <li class="empty">No PDFs in this directory yet.</li>
+          {/each}
+        </ul>
+      </div>
+    {:else}
+      <form class="connect" onsubmit={connect}>
+        <input bind:value={pasted} placeholder="Paste the URL printed by margin serve" aria-label="Bridge URL" data-testid="bridge-url" />
+        <button type="submit" data-testid="bridge-connect">Connect</button>
+      </form>
+      {#if pasteError}<p class="err">{pasteError}</p>{/if}
+      <p class="m">Run <code>margin serve --dir ~/grading</code> to let agents and the CLI work on the same files live.</p>
+    {/if}
 
     <h2>Recent documents</h2>
     {#if app.recent.length}
@@ -61,6 +104,33 @@
     border-radius: 12px;
     padding: 28px;
     box-shadow: var(--shadow);
+  }
+  .connect {
+    display: flex;
+    gap: 6px;
+  }
+  .connect input {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 8px;
+  }
+  .connect button,
+  .link {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+  }
+  .link {
+    padding: 0 6px;
+    margin-left: 4px;
+  }
+  .err {
+    color: var(--danger);
+    margin: 4px 0 0;
   }
   h1 {
     margin: 0;

@@ -18,6 +18,7 @@
   const badges = $derived([
     { key: 'unresolved', n: app.unplaced.length, text: (n: number) => `${n} unresolved anchor${n > 1 ? 's' : ''}`, tip: 'Annotations whose quote was not found or is ambiguous' },
     { key: 'overflow', n: app.overflowPages.length, text: (n: number) => `${n} page${n > 1 ? 's' : ''} overflow`, tip: 'Comments do not fit the margins on these pages' },
+    { key: 'review', n: app.unreviewed.length, text: (n: number) => `${n} AI comment${n > 1 ? 's' : ''} to review`, tip: 'Agent comments not yet accepted; click to list them' },
     { key: 'math', n: app.mathErrorCount, text: (n: number) => `${n} math error${n > 1 ? 's' : ''}`, tip: 'TeX errors in comments (shown in red)' },
   ].filter((b) => b.n > 0));
 </script>
@@ -55,12 +56,22 @@
 
   <div class="spacer"></div>
 
+  {#if app.bridge}
+    <span class="bridge" class:offline={!app.bridge.online} title={app.bridge.online ? `Connected to margin serve (${app.bridge.dir}); changes are saved to disk and agent changes appear live` : 'Connection to margin serve lost; retrying'} data-testid="bridge-status">
+      {app.bridge.online ? '● bridge' : '○ bridge offline'}
+    </span>
+  {/if}
+
   {#each badges as b (b.key)}
-    <span class="badge" title={b.tip} data-testid="badge-{b.key}">⚠ {b.text(b.n)}</span>
+    {#if b.key === 'review'}
+      <button class="badge review" title={b.tip} data-testid="badge-review" onclick={() => ((app.originFilter = 'unreviewed'), (app.sidebarOpen = true))}>{b.text(b.n)}</button>
+    {:else}
+      <span class="badge" title={b.tip} data-testid="badge-{b.key}">⚠ {b.text(b.n)}</span>
+    {/if}
   {/each}
 
   <div class="group">
-    <button onclick={() => app.undo()} disabled={!app.canUndo} title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+    <button onclick={() => app.undo()} disabled={!app.canUndo} title={app.undoLabel ? `Undo ${app.undoLabel} (Ctrl+Z)` : 'Undo (Ctrl+Z)'} aria-label="Undo" data-testid="undo">↶</button>
     <button onclick={() => app.redo()} disabled={!app.canRedo} title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
   </div>
   <div class="group" role="group" aria-label="Zoom">
@@ -206,6 +217,18 @@
     border-radius: 999px;
     padding: 2px 9px;
     font-size: 12px;
+  }
+  .badge.review {
+    color: #1e3a8a;
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+  .bridge {
+    font-size: 12px;
+    color: #15803d;
+  }
+  .bridge.offline {
+    color: #b45309;
   }
   .home {
     padding: 4px 8px;

@@ -62,6 +62,9 @@ test('overlay and exported page agree within 1 px at 150 dpi', async ({ page }, 
   await openApp(page);
   await openFixture(page, 'plain', true);
   await page.getByTestId('toggle-sidebar').click();
+  // The reference annotations come from the CLI (origin: agent). Unreviewed agent comments carry screen-only
+  // marks (spec §9.4) that the export never has, so review them first, as a grader would.
+  await page.evaluate(() => (window as unknown as { __margin: { app: { acceptAll(): void } } }).__margin.app.acceptAll());
   // 150 dpi: 150/72 CSS px per point, no device scaling.
   await page.evaluate(() => (window as unknown as { __margin: { app: { setZoom(z: number): void } } }).__margin.app.setZoom(150 / 72));
   await expect(page.getByTestId('page-1')).toHaveAttribute('data-rendered', String(150 / 72), { timeout: 30_000 });
