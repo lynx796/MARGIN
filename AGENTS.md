@@ -80,6 +80,10 @@ Rules for the web app:
   download elsewhere; no picker with `?e2e`) because the picker needs the click. Dropping an exported PDF runs
   `openExported`: the attached original, a dropped original or the copy in browser storage, matched by sha256.
   The grading report PDF is kept in storage next to the paper (`storage.saveReport`) and referenced by `file.report`.
+- Pseudonymization (`components/PseudonymizeDialog.svelte`): redaction runs in `lib/pseudo.worker.ts`; verification
+  and the mapping run on the main thread via a lazy `import('@margin/core/pseudo')`. Saving is disabled until the
+  review checkbox is ticked. Terms are kept per paper (`terms:<sha>`), mappings by the copy's hash (`pseudo:<sha>`);
+  a copy with a mapping shows "Transfer to original". `vite.config.ts` excludes `mupdf` from dependency pre-bundling.
 - Agent comments (`origin: agent`, not `reviewed`) get a dashed outline and an "AI" badge in `Overlay.svelte`
   only. Those marks are screen-only; they are not in the display list and never in the export.
   Accept with Enter, the badge, or "Accept all on page"; editing a comment also accepts it.
@@ -100,6 +104,7 @@ Rules for the web app:
 | `merge` | Three-way merge of an externally changed annotation file by ID; conflicts keep the losing local version |
 | `render-pdf/embedded.ts` | Reads `margin.annot.json` / `margin.original.pdf` back out of an exported PDF (`importExported`) |
 | `check.ts` | Problems reported by `margin check` |
+| `pseudo` | Pseudonymization (spec §10): term groups, matching, redaction (MuPDF) + scrub (pdf-lib), verification, mapping file, restore. Entry `@margin/core/pseudo` |
 | `pipeline.ts` | Glue: PDF → ink → geometry, resolve all anchors, prepare math, layout |
 
 The **display list** (`layout/types.ts`) is the contract between layout and rendering.
@@ -120,6 +125,15 @@ Implementation notes that are not obvious from the spec:
   `PageLayout.overflow` lists the spilled IDs. `\ref` occurrences are `PageLayout.links`/`NotesPage.links` and become
   GoTo link annotations at export. The attached annotation file is the canonical `serialize(file)`.
 - Rotated pages are rejected by export for now (`rotated-page`).
+- Extraction runs with `AnnotationMode.DISABLE` (form/annotation appearances are not page text) and tracks the
+  clip path and form bboxes: clipped characters are marked in `PageText.hidden`, and `rangeForQuads` skips them.
+- Pseudonymization tokens are drawn inside `/MarginToken BMC … EMC`; each marked-content sequence is its own run
+  (`RawChar.inline`) that `placeInline` splices into the line next to its neighbours, so quotes like `[AUTHOR_1]` resolve.
+- `pseudo/redact.ts`: MuPDF (`mupdf`, **AGPL-3.0**, WASM) removes glyphs that *touch* a rectangle, so redaction
+  rectangles are inset (`redactionRect`). Then pdf-lib scrubs metadata, XMP, `/AF`, outlines, links, forms, JS,
+  renames named destinations and garbage-collects. `verifyRedaction` checks text, structure and decoded streams
+  (font programs skipped); `pseudonymize()` refuses to return anything if it finds a term.
+- Annotations go back to the original with the same quads; quotes containing tokens are re-extracted from the original.
 - Math glyph ranges are loaded on demand by MathJax (no preloading); the web app maps their module
   names to bundled chunks with `setMathModuleLoader` (`web/src/lib/setup.ts`).
 - The schema validator is generated (`core/src/model/validator.generated.js`); a test fails if it is
@@ -158,7 +172,9 @@ Implementation notes that are not obvious from the spec:
 - Fixtures (`fixtures/<name>/`): `<name>.tex` → `<name>.pdf` (reproducible build), `ops.json` →
   `<name>.annot.json` (reference annotations), optional `golden.json` (`dpi`, `pages`), and
   `expected/`. Current set: `plain`, `twocolumn`, `tight` (k cap reached, s < 1), `mathheavy`
-  (TikZ, region anchors), `mixed` (page sizes), `long` (20 pages, 60 comments).
+  (TikZ, region anchors), `mixed` (page sizes), `long` (20 pages, 60 comments), `names` (personal data in text,
+  metadata, bookmarks, attachments, forms, an included PDF; for pseudonymization). A `terms.txt` next to a fixture
+  makes `packages/cli/test/pseudo.test.ts` pseudonymize it and scan the result for leaks.
 
 ## Git
 
