@@ -93,3 +93,10 @@ Prefer one batch per page or section over many single calls. `margin add` prints
   the quote of that comment (`margin rm <id>` and add it again, or `margin edit`).
 - `margin export paper.pdf -o out.pdf` writes the flattened PDF with all comments; the
   human normally does this.
+
+## Pseudonymized papers
+
+A paper named `*.pseudo.pdf` has had personal names and similar data replaced by tokens such
+as `[AUTHOR_1]` on a gray box. Treat a token like any other word: quote it literally
+(`--quote "[AUTHOR_1]'s lemma"`) and refer to the person by the token in your comments. Never
+try to guess who it is. The human transfers your comments to the original afterwards.

@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { MarginError } from '@margin/core';
-import { cmdAdd, cmdAgentGuide, cmdApply, cmdCheck, cmdEdit, cmdExport, cmdImport, cmdInit, cmdList, cmdRead, cmdRender, cmdResolve, cmdRm, cmdSchema, cmdServe, type Args } from './commands.ts';
+import { cmdAdd, cmdAgentGuide, cmdApply, cmdCheck, cmdEdit, cmdExport, cmdImport, cmdInit, cmdPseudonymize, cmdRestore, cmdList, cmdRead, cmdRender, cmdResolve, cmdRm, cmdSchema, cmdServe, type Args } from './commands.ts';
 import { EXIT_ERROR, EXIT_OK, Output } from './output.ts';
 import { VERSION } from './workspace.ts';
 
@@ -33,6 +33,13 @@ Commands:
   import <exported.pdf> [original.pdf] [--force]
                                 Recover paper.annot.json (and the paper, if it was embedded) from an
                                 exported PDF; the original must match by sha256
+  pseudonymize <paper.pdf> --terms terms.txt [-o out.pdf] [--review dir] [--force]
+                                Redacted copy with names replaced by [TOKEN]s and metadata scrubbed,
+                                verified, plus the private mapping file (and a copy of the annotation
+                                file with tokens). --suggest lists candidate terms instead. Terms file:
+                                one group per line, TOKEN: variant | variant | /regex/
+  restore <paper.pseudo.annot.json> --map paper.pseudo.json --original paper.pdf [--as TOKEN=text]
+                                Copy comments made on the pseudonymized PDF back to the original
   serve [--dir D] [--port 7311] [--allow-origin URL]
                                 Local bridge: serves the web app and the PDFs and annotation files
                                 of D on 127.0.0.1; changes made by this CLI appear live in the app
@@ -61,6 +68,8 @@ const COMMANDS: Record<string, (args: Args, out: Output) => Promise<number>> = {
   render: cmdRender,
   export: cmdExport,
   import: cmdImport,
+  pseudonymize: cmdPseudonymize,
+  restore: cmdRestore,
   schema: cmdSchema,
   'agent-guide': cmdAgentGuide,
   serve: cmdServe,
@@ -99,6 +108,12 @@ export async function run(argv: string[]): Promise<number> {
         dpi: { type: 'string' },
         report: { type: 'string' },
         position: { type: 'string' },
+        terms: { type: 'string' },
+        suggest: { type: 'boolean' },
+        review: { type: 'string' },
+        map: { type: 'string' },
+        original: { type: 'string' },
+        as: { type: 'string', multiple: true },
         o: { type: 'string', short: 'o' },
       },
     });
