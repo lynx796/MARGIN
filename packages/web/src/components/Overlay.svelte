@@ -35,6 +35,20 @@
   const focused = $derived(app.focusedId ? items.find((i) => i.id === app.focusedId) : undefined);
   const focusedAnn = $derived(app.annotation(app.focusedId));
 
+  /**
+   * Agent comments a human has not accepted yet: dashed outline and an "AI" badge (spec §9.4). They are
+   * drawn here only, on top of the display list, so they never reach the export.
+   */
+  const agentMarks = $derived(
+    items
+      .filter((i) => app.isUnreviewed(i.id))
+      .map((i) => {
+        const frame = i.box ?? (i.anchor[0] ? ([i.anchor[0][0], i.anchor[0][1], i.anchor[0][2] - i.anchor[0][0], i.anchor[0][3] - i.anchor[0][1]] as const) : null);
+        return frame ? { id: i.id, boxed: !!i.box, frame, anchors: i.box ? [] : i.anchor, color: app.category(app.annotation(i.id)?.category ?? '')?.color ?? '#888' } : null;
+      })
+      .filter((m) => m !== null),
+  );
+
   /** In-progress selection, drawn from the same character boxes that will be stored. */
   const pendingRects = $derived.by((): Rect[] => {
     const p = app.pending;
@@ -141,6 +155,21 @@
     {/if}
   {/each}
 
+  {#each agentMarks as m (m.id)}
+    <g class="agent" data-testid="agent-{m.id}">
+      {#if m.boxed}
+        <rect x={m.frame[0]} y={m.frame[1]} width={m.frame[2]} height={m.frame[3]} rx="2" fill="none" stroke={m.color} stroke-width="1" stroke-dasharray="3 2" />
+      {:else}
+        {#each m.anchors as r}<rect x={r[0]} y={r[1]} width={r[2] - r[0]} height={r[3] - r[1]} fill="none" stroke={m.color} stroke-width="0.8" stroke-dasharray="3 2" />{/each}
+      {/if}
+      <g class="accept" data-accept={m.id} transform="translate({m.frame[0] + 2} {m.frame[1] - 5.5})">
+        <title>AI comment, not reviewed yet. Click, or press Enter, to accept.</title>
+        <rect width="15" height="9" rx="2.5" fill={m.color} />
+        <text x="7.5" y="6.6" text-anchor="middle" font-size="6.2" font-weight="700" fill="#fff" font-family="system-ui, sans-serif">AI</text>
+      </g>
+    </g>
+  {/each}
+
   {#each handles as h}
     <circle class="handle" data-handle={h.which} cx={h.x} cy={h.y} r={4.5 / app.zoom} fill="var(--accent)" stroke="white" stroke-width={1.2 / app.zoom} />
   {/each}
@@ -155,8 +184,12 @@
     /* No z-index: a stacking context would stop highlights from multiplying into the canvas. */
   }
   .over .hit,
-  .over .handle {
+  .over .handle,
+  .over .accept {
     pointer-events: all;
+  }
+  .over .accept {
+    cursor: pointer;
   }
   .over .hit {
     cursor: text;

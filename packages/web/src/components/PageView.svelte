@@ -93,6 +93,13 @@
     const [ox, oy] = outPoint(e);
     const [x, y] = toOriginal(g, ox, oy);
     const base = { moved: false, sx: e.clientX, sy: e.clientY };
+    const accept = target.closest<SVGElement>('[data-accept]');
+    if (accept) {
+      app.acceptComment(accept.dataset.accept!);
+      app.focus(accept.dataset.accept!);
+      e.preventDefault();
+      return;
+    }
     const handle = target.closest<SVGElement>('[data-handle]');
     const boxEl = target.closest<SVGElement>('[data-box]');
     if (handle && app.focusedId) {

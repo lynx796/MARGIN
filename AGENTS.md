@@ -13,6 +13,7 @@ pnpm test:e2e                # Playwright in Chromium and Firefox against the pr
 pnpm dev                     # web app dev server (http://localhost:5173); open with ?e2e for test hooks
 pnpm typecheck               # tsc -b for core and cli, svelte-check for web
 pnpm margin <command> …      # run the CLI from source, e.g. pnpm margin read fixtures/plain/plain.pdf
+pnpm --filter @margin/web build && pnpm margin serve --dir <dir>   # bridge + app on one origin, prints the token URL
 pnpm fixtures:build          # recompile fixture PDFs from their .tex sources (needs latexmk)
 pnpm fixtures:annotate       # rebuild fixtures/*/<name>.annot.json from fixtures/*/ops.json
 pnpm golden:update           # regenerate golden outputs after an intended layout change; review the diff
@@ -29,10 +30,21 @@ First time: `pnpm exec playwright install chromium firefox`.
 | Package | Role |
 | --- | --- |
 | `packages/core` | All logic. Framework-free TypeScript, runs in browser and Node. |
-| `packages/cli` | The `margin` command. Thin wrapper: file I/O, argument parsing, PNG encoding. |
+| `packages/cli` | The `margin` command. Thin wrapper: file I/O, argument parsing, PNG encoding. `src/agent-guide.md` is what `margin agent-guide` prints. |
+| `packages/bridge` | `margin serve`: HTTP server on 127.0.0.1 (Node only) for PDFs and annotation files of one directory, SSE change stream, static app with the CSP header. |
 | `packages/web` | Svelte 5 + Vite single-page app: viewer, SVG overlay, CodeMirror editor, panels, storage. |
 
-`packages/bridge` (`margin serve`) comes in phase 3 (spec §13).
+### Bridge (`packages/bridge`, spec §9.3)
+
+- API under `/api/` (`files`, `pdf`, `annot` GET/PUT, `events` SSE). Every request needs
+  `Authorization: Bearer <token>`; the Host must be loopback; browsers' `Origin` must be the bridge itself
+  or an `--allow-origin`. Paths are confined to the directory (no dotfiles, no symlink escapes, only
+  `.pdf` / `.annot.json`). `GET annot` answers 204, not 404, when there is no file yet.
+- ETag = SHA-256 of the file text. `PUT` takes `If-Match`; a stale one gets 412 and the app merges and
+  retries, so a write never overwrites an agent's change made in the meantime.
+- The CSP lives in `bridge/src/csp.ts`; `vite.config.ts` injects the same string as a meta tag.
+- Tests: `packages/bridge/test` (access control, traversal, preflight, SSE); the browser side is covered by
+  `packages/web/e2e/bridge.spec.ts`, which starts a real `margin serve` and uses the CLI as the agent.
 
 ### Web app (`packages/web/src`)
 
@@ -41,6 +53,7 @@ First time: `pnpm exec playwright install chromium firefox`.
 | `lib/state.svelte.ts` | The one store: document, undo history, creating/editing comments, categories, settings, search, autosave, export. Model changes are immutable snapshots; `mutate()` makes one undo step. |
 | `lib/selection.ts` | Text selection on the core's character boxes (pure, unit-tested). The browser's own selection is not used. |
 | `lib/mathcm.ts` | CodeMirror extensions: math widgets, floating preview, `@` picker, key handling. |
+| `lib/bridge.ts` | Client of the bridge: token handling, list/read/write, reconnecting event stream. |
 | `lib/storage.ts` | OPFS (IndexedDB fallback) for PDFs and annotations, IndexedDB index and settings. |
 | `lib/export.worker.ts` | PDF export off the main thread. |
 | `components/PageView.svelte` | One page: canvas drawn with transform T, overlay, editor, pointer interaction. |
@@ -57,6 +70,15 @@ Rules for the web app:
   (hence the standalone validator), inline data: fonts, or a network request.
 - Keys inside the editor are bound at `Prec.highest` so autocomplete cannot swallow Enter/Esc.
 - Tests find text on screen through `window.__margin` (only with `?e2e` in the URL).
+- Live sync (`state.svelte.ts`, "Bridge" section): external changes are merged with core's
+  `mergeExternal(base, local, disk)` by annotation ID and enter the undo history as one labeled step.
+  `base` is the file as last exchanged with the disk, and annotations lacking geometry are resolved
+  *before* comparing, so resolution never shows up as a change. Bridge reads and writes run through one
+  queue. Do not read response headers other than via the body: the ETag is hashed client-side because a
+  cross-origin page cannot see it.
+- Agent comments (`origin: agent`, not `reviewed`) get a dashed outline and an "AI" badge in `Overlay.svelte`
+  only. Those marks are screen-only; they are not in the display list and never in the export.
+  Accept with Enter, the badge, or "Accept all on page"; editing a comment also accepts it.
 
 ## Core modules (`packages/core/src`)
 
@@ -71,6 +93,7 @@ Rules for the web app:
 | `layout` | Anchor marks, column assignment, PAVA placement, leaders, numbering → display list |
 | `render-pdf` | Display list → PDF via pdf-lib |
 | `ops.ts` | add / edit / rm as one validated, atomic batch (shared by CLI and UI) |
+| `merge` | Three-way merge of an externally changed annotation file by ID; conflicts keep the losing local version |
 | `check.ts` | Problems reported by `margin check` |
 | `pipeline.ts` | Glue: PDF → ink → geometry, resolve all anchors, prepare math, layout |
 
@@ -81,6 +104,8 @@ Implementation notes that are not obvious from the spec:
 - Character boxes come from replaying pdf.js operator lists (`pdf/extract.ts`), not from
   `getTextContent`, which only reports runs. Box heights use fixed ascent/descent fractions so a
   quad's baseline is recoverable (`baselineOf`).
+- Quote resolution tries an exact match, then a fuzzy one (edit distance ≤ 10 % of the quote, extended to
+  whole words) and accepts it only if unique; a fuzzy match rewrites `quote.exact` to the paper's own words.
 - IDs use Crockford base32 (`0-9a-z` without `i l o u`), which matches the spec's examples.
 - Fonts are handled by `@cantoo/fontkit` for both metrics and embedding (`@pdf-lib/fontkit`
   crashes when subsetting Fira with `@cantoo/pdf-lib`).
@@ -113,8 +138,11 @@ Implementation notes that are not obvious from the spec:
   produces `layout.json` and one PNG per annotated page; they are compared with
   `fixtures/<name>/expected/`. If a change is intended, run `pnpm golden:update` and review the diff
   like code (PNGs: open them).
-- Acceptance tests (`packages/cli/test/acceptance.test.ts`) check the phase gates of spec §12.3.
-- E2E (`packages/web/e2e`, Playwright, both browsers): editing, persistence, panels, settings, export.
+- Acceptance tests (`packages/cli/test/acceptance.test.ts`) check the phase gates of spec §12.3. The phase 3
+  gate is `packages/cli/test/agent-workflow.test.ts`: an "agent" that only follows `margin agent-guide` adds
+  10 quote-anchored comments with zero unresolved anchors. If you change CLI behavior, update
+  `src/agent-guide.md` and keep that test passing.
+- E2E (`packages/web/e2e`, Playwright, both browsers): editing, persistence, panels, settings, export, bridge.
   `export.spec.ts` compares the screen overlay with the exported PDF at 150 dpi with a 1 px
   tolerance (and a shifted copy as negative control).
 - Fixtures (`fixtures/<name>/`): `<name>.tex` → `<name>.pdf` (reproducible build), `ops.json` →

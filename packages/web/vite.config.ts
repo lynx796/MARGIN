@@ -1,20 +1,9 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig, type Plugin } from 'vite';
+import { CSP } from '../bridge/src/csp.ts';
 
-// Content Security Policy of spec §11, injected into production builds (the dev server needs inline
-// scripts for hot reload). `margin serve` also sends it as a header.
-export const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'wasm-unsafe-eval'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data:",
-  "font-src 'self'",
-  "worker-src 'self' blob:",
-  "connect-src 'self' http://127.0.0.1:*",
-  "form-action 'none'",
-  "base-uri 'none'",
-].join('; ');
-
+// The CSP of spec §11 (shared with `margin serve`) is injected into production builds; the dev
+// server needs inline scripts for hot reload.
 const csp = (): Plugin => ({
   name: 'margin-csp',
   apply: 'build',
