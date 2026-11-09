@@ -76,6 +76,15 @@ function rectPath(x: number, y: number, w: number, h: number, r = 0): string {
   ].join('');
 }
 
+/** The visible area of a page: its crop box clipped to the media box, as pdf.js and MuPDF use it. */
+export function visibleBox(page: PDFPage): { x: number; y: number; width: number; height: number } {
+  const c = page.getCropBox();
+  const m = page.getMediaBox();
+  const x = Math.max(c.x, m.x);
+  const y = Math.max(c.y, m.y);
+  return { x, y, width: Math.min(c.x + c.width, m.x + m.width) - x, height: Math.min(c.y + c.height, m.y + m.height) - y };
+}
+
 function round3(v: number): number {
   return Math.round(v * 1000) / 1000;
 }
@@ -191,7 +200,7 @@ export async function renderPdf(o: RenderOptions): Promise<Uint8Array> {
     if (sp.getRotation().angle % 360 !== 0) {
       throw new MarginError('rotated-page', `Page ${g.page} is rotated; rotated pages are not supported yet.`, { path: `/pages/${g.page}` });
     }
-    const crop = sp.getCropBox();
+    const crop = visibleBox(sp);
     const [vx0, , vx1] = visibleRect(g);
     const embedded = await out.embedPage(sp, { left: crop.x + vx0, bottom: crop.y, right: crop.x + vx1, top: crop.y + crop.height });
     const page = out.addPage([g.outWidth, g.outHeight]);

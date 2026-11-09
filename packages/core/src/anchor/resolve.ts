@@ -191,13 +191,13 @@ export function quoteForRange(page: PageText, start: number, end: number): TextQ
   return { exact, prefix: before.slice(-CONTEXT_LENGTH), suffix: after.slice(0, CONTEXT_LENGTH) };
 }
 
-/** Source range of characters whose centers lie inside any of the quads. */
+/** Source range of visible characters whose centers lie inside any of the quads (clipped-away text never counts). */
 export function rangeForQuads(page: PageText, quads: Rect[]): [number, number] | null {
   let lo = -1;
   let hi = -1;
   page.boxes.forEach((b, i) => {
     const c = page.text[i]!;
-    if (c === '\n' || c === ' ') return;
+    if (c === '\n' || c === ' ' || page.hidden?.[i]) return;
     const cx = (b[0] + b[2]) / 2;
     const cy = (b[1] + b[3]) / 2;
     if (quads.some((q) => cx >= q[0] - 0.5 && cx <= q[2] + 0.5 && cy >= q[1] - 0.5 && cy <= q[3] + 0.5)) {
