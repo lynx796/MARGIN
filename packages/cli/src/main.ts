@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { MarginError } from '@margin/core';
-import { cmdAdd, cmdApply, cmdCheck, cmdEdit, cmdExport, cmdInit, cmdList, cmdRead, cmdRender, cmdResolve, cmdRm, cmdSchema, type Args } from './commands.ts';
+import { cmdAdd, cmdAgentGuide, cmdApply, cmdCheck, cmdEdit, cmdExport, cmdInit, cmdList, cmdRead, cmdRender, cmdResolve, cmdRm, cmdSchema, cmdServe, type Args } from './commands.ts';
 import { EXIT_ERROR, EXIT_OK, Output } from './output.ts';
 import { VERSION } from './workspace.ts';
 
@@ -26,7 +26,11 @@ Commands:
   render [paper.pdf] -o <dir> [--pages N] [--dpi 150]
                                 PNG per annotated page plus layout.json, for visual checks
   export [paper.pdf] [-o file]  Flattened PDF (default paper.annotated.pdf)
+  serve [--dir D] [--port 7311] [--allow-origin URL]
+                                Local bridge: serves the web app and the PDFs and annotation files
+                                of D on 127.0.0.1; changes made by this CLI appear live in the app
   schema                        Print the annotation file JSON Schema
+  agent-guide                   Print a concise usage guide written for AI agents
 
 Common options:
   --annot <file>   Annotation file (default: <pdf>.annot.json, or the only *.annot.json here)
@@ -50,6 +54,8 @@ const COMMANDS: Record<string, (args: Args, out: Output) => Promise<number>> = {
   render: cmdRender,
   export: cmdExport,
   schema: cmdSchema,
+  'agent-guide': cmdAgentGuide,
+  serve: cmdServe,
 };
 
 export async function run(argv: string[]): Promise<number> {
@@ -76,6 +82,11 @@ export async function run(argv: string[]): Promise<number> {
         side: { type: 'string' },
         origin: { type: 'string' },
         reviewed: { type: 'boolean' },
+        unreviewed: { type: 'boolean' },
+        dir: { type: 'string' },
+        port: { type: 'string' },
+        'allow-origin': { type: 'string' },
+        'app-dir': { type: 'string' },
         force: { type: 'boolean' },
         dpi: { type: 'string' },
         o: { type: 'string', short: 'o' },

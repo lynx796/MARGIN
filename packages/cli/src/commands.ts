@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { PNG } from 'pngjs';
+import { DEFAULT_PORT, startBridge } from '@margin/bridge';
 import {
   applyOps,
   checkFile,
@@ -145,9 +147,11 @@ export async function cmdList(args: Args, out: Output): Promise<number> {
   const ws = openWorkspace(args.positionals[0], str(args, 'annot'));
   const page = int(args, 'page');
   const category = str(args, 'category');
+  const origin = str(args, 'origin');
   const numbers = computeNumbers(ws.file);
   const rows = ws.file.annotations
     .filter((a) => (page === undefined || a.anchor.page === page) && (category === undefined || a.category === category))
+    .filter((a) => (origin === undefined || a.origin === origin) && (!args.values.unreviewed || (a.origin === 'agent' && !a.reviewed)))
     .sort((a, b) => (numbers[a.id] ?? Infinity) - (numbers[b.id] ?? Infinity) || (a.anchor.page ?? 0) - (b.anchor.page ?? 0) || (a.id < b.id ? -1 : 1))
     .map((a) => ({
       number: numbers[a.id] ?? null,
@@ -157,6 +161,7 @@ export async function cmdList(args: Args, out: Output): Promise<number> {
       quote: quoteOf(a),
       body: a.body,
       origin: a.origin,
+      ...(a.origin === 'agent' ? { reviewed: a.reviewed === true } : {}),
       ...(a.status && a.status !== 'ok' ? { status: a.status } : {}),
     }));
   const text = rows.length
@@ -321,5 +326,34 @@ export async function cmdRender(args: Args, out: Output): Promise<number> {
 
 export async function cmdSchema(): Promise<number> {
   process.stdout.write(JSON.stringify(schema, null, 2) + '\n');
+  return EXIT_OK;
+}
+
+// ── agent-guide ───────────────────────────────────────────────────────────────────────────────
+
+export async function cmdAgentGuide(_args: Args, out: Output): Promise<number> {
+  const text = readFileSync(new URL('./agent-guide.md', import.meta.url), 'utf8');
+  out.result({ guide: text }, text);
+  return EXIT_OK;
+}
+
+// ── serve ─────────────────────────────────────────────────────────────────────────────────────
+
+export async function cmdServe(args: Args, out: Output): Promise<number> {
+  const dir = str(args, 'dir')?.replace(/^~(?=\/|$)/, homedir()) ?? args.positionals[0] ?? '.';
+  const port = int(args, 'port') ?? DEFAULT_PORT;
+  const allowOrigins = (str(args, 'allow-origin') ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+  const appDir = str(args, 'app-dir') ?? new URL('../../web/dist/', import.meta.url).pathname;
+  const bridge = await startBridge({ dir, port, appDir, allowOrigins });
+  out.result(
+    { url: bridge.url, origin: bridge.origin, port: bridge.port, token: bridge.token, dir: bridge.dir },
+    `Margin bridge for ${bridge.dir}\nOpen: ${bridge.url}\nPress Ctrl+C to stop.`,
+  );
+  await new Promise<void>((done) => {
+    const stop = () => done();
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+  });
+  await bridge.close();
   return EXIT_OK;
 }

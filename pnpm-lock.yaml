@@ -33,8 +33,17 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15))
 
+  packages/bridge:
+    dependencies:
+      '@margin/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/cli:
     dependencies:
+      '@margin/bridge':
+        specifier: workspace:*
+        version: link:../bridge
       '@margin/core':
         specifier: workspace:*
         version: link:../core

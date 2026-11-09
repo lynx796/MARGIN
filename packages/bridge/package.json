@@ -1,0 +1,14 @@
+{
+  "name": "@margin/bridge",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./csp": "./src/csp.ts"
+  },
+  "dependencies": {
+    "@margin/core": "workspace:*"
+  }
+}
