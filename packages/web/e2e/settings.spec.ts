@@ -64,3 +64,31 @@ test('Forget this document removes it from browser storage', async ({ page }) =>
   await page.getByTestId('forget').click();
   await expect(page.getByText('Nothing yet.')).toBeVisible();
 });
+
+test('Clear all data empties every store of the app in this browser', async ({ page }) => {
+  await page.evaluate(async () => {
+    const w = window as unknown as { __margin: { app: { flushSave(): Promise<void>; saveTerms(t: string): Promise<void> } } };
+    await w.__margin.app.flushSave();
+    await w.__margin.app.saveTerms('AUTHOR_1: Anna');
+    localStorage.setItem('margin.hint.region', '1');
+  });
+  await page.getByTestId('open-settings').click();
+  await page.getByRole('button', { name: 'Clear all data' }).click();
+  await expect(page.getByText('Nothing yet.')).toBeVisible();
+  const left = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((ok, fail) => {
+      const r = indexedDB.open('margin');
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => fail(r.error);
+    });
+    const count = (store: string) => new Promise<number>((ok) => {
+      const r = db.transaction(store).objectStore(store).count();
+      r.onsuccess = () => ok(r.result);
+    });
+    const opfs: string[] = [];
+    const root = (await navigator.storage.getDirectory()) as unknown as { keys(): AsyncIterable<string> };
+    for await (const name of root.keys()) opfs.push(name);
+    return { docs: await count('docs'), kv: await count('kv'), blobs: await count('blobs'), opfs, hint: localStorage.getItem('margin.hint.region') };
+  });
+  expect(left).toEqual({ docs: 0, kv: 0, blobs: 0, opfs: [], hint: null });
+});
