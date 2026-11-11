@@ -1,0 +1,17 @@
+# docker compose -f deploy/compose.yaml up --build   →  http://localhost:8080
+# Put a TLS-terminating proxy in front for anything but localhost (see docs/deployment.md).
+services:
+  margin:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: margin:latest
+    ports:
+      - "127.0.0.1:8080:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
