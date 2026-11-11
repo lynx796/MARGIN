@@ -1,6 +1,7 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig, type Plugin } from 'vite';
 import { CSP } from '../bridge/src/csp.ts';
+import { offline } from './offline.ts';
 
 // The CSP of spec §11 (shared with `margin serve`) is injected into production builds; the dev
 // server needs inline scripts for hot reload.
@@ -11,7 +12,7 @@ const csp = (): Plugin => ({
 });
 
 export default defineConfig({
-  plugins: [svelte(), csp()],
+  plugins: [svelte(), csp(), offline()],
   build: {
     target: 'es2023',
     // Every asset is a real file, so `font-src 'self'` and `img-src 'self'` suffice (no data: URLs).

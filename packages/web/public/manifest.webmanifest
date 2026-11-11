@@ -1,0 +1,11 @@
+{
+  "name": "Margin",
+  "short_name": "Margin",
+  "description": "Local-first PDF grading annotator",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdfcf8",
+  "theme_color": "#fdfcf8",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

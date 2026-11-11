@@ -40,6 +40,7 @@ import {
 } from '@margin/core';
 import { loadFontBytes, loadFonts } from './fonts.ts';
 import { BridgeClient, BridgeError, connectionFromLocation, forgetConnection, type BridgeConnection, type BridgeEvent, type BridgeFile } from './bridge.ts';
+import { bridgeLink, canPickHandles, fileLink, hasPermission, pickHandles, type AnnotLink, type FileLink } from './filelink.ts';
 import { storage, type DocRecord } from './storage.ts';
 import { exportInWorker } from './exporter.ts';
 import { chooseTarget, writeTarget } from './savefile.ts';
@@ -161,6 +162,13 @@ class App {
 
   private client: BridgeClient | null = null;
   private stopFollowing: (() => void) | undefined;
+  /** Where the annotation file of the open document is synced to: the bridge, or a file handle. */
+  private link: AnnotLink | null = null;
+  private stopWatching: (() => void) | undefined;
+  /** Name of the file the annotations are written to (Chromium file handle), for the top bar. */
+  linkedFile = $state<string | null>(null);
+  /** A stored file handle whose permission lapsed; reconnecting needs a click. */
+  reconnectable = $state.raw<FileSystemFileHandle | null>(null);
   /** The annotation file as last exchanged with the disk, and its ETag (SHA-256 of the text). */
   private bridgeBase: AnnotFile | null = null;
   private bridgeEtag: string | null = null;
@@ -340,9 +348,15 @@ class App {
       return;
     }
     await this.openPdf(bytes, rec.name);
+    // A file the annotations were written to in an earlier session (Chromium): sync with it again.
+    const handle = await storage.getSetting<FileSystemFileHandle>(`handle:${sha}`).catch(() => undefined);
+    if (handle && this.pdf?.sha256 === sha) {
+      if (await hasPermission(handle).catch(() => false)) await this.linkFile(handle);
+      else this.reconnectable = handle;
+    }
   }
 
-  async openPdf(bytes: Uint8Array, name: string, annotText?: string, bridge?: { path: string; etag: string | null }): Promise<void> {
+  async openPdf(bytes: Uint8Array, name: string, annotText?: string, link?: { link: AnnotLink; etag: string | null }): Promise<void> {
     this.loading = 'Opening PDF…';
     try {
       const pdf = await PdfDoc.open(bytes);
@@ -351,7 +365,7 @@ class App {
       if (annotText !== undefined) {
         file = parseAnnotFile(annotText);
         mismatch = file.document.sha256 !== pdf.sha256;
-      } else if (!bridge) {
+      } else if (!link) {
         const stored = await storage.loadAnnotations(pdf.sha256);
         if (stored) {
           try {
@@ -388,10 +402,8 @@ class App {
       this.focusedId = null;
       this.activeCategory = file.categories.find((c) => c.kind === 'comment')?.id ?? file.categories[0]?.id ?? '';
       this.currentPage = 1;
-      this.bridgePath = bridge?.path ?? null;
-      this.bridgeBase = bridge ? structuredClone(file) : null;
-      this.bridgeEtag = bridge?.etag ?? null;
-      this.bridgeDirty = false;
+      this.setLink(link?.link ?? null, link ? structuredClone(file) : null, link?.etag ?? null);
+      this.reconnectable = null;
       this.conflicts = [];
       this.originFilter = '';
       this.rebuildGeometry();
@@ -414,8 +426,8 @@ class App {
     await this.bridgeChain;
     await this.pdf?.destroy().catch(() => undefined);
     this.pdf = null;
-    this.bridgePath = null;
-    this.bridgeBase = null;
+    this.setLink(null, null, null);
+    this.reconnectable = null;
     this.conflicts = [];
     this.file = null;
     this.geometry = null;
@@ -432,6 +444,7 @@ class App {
     await storage.forget(sha);
     await storage.deleteSetting(`pseudo:${sha}`).catch(() => undefined);
     await storage.deleteSetting(`terms:${sha}`).catch(() => undefined);
+    await storage.deleteSetting(`handle:${sha}`).catch(() => undefined);
     this.recent = await storage.list();
   }
 
@@ -896,6 +909,103 @@ class App {
     this.setCategories(() => DEFAULT_CATEGORIES.map((c) => ({ ...c })));
   }
 
+  // ── Linked annotation file: bridge or Chromium file handle (spec §2, §9.3) ──────────────────
+
+  /** Switch where the annotation file is synced to; `base` and `etag` describe the file as last exchanged. */
+  private setLink(link: AnnotLink | null, base: AnnotFile | null, etag: string | null): void {
+    this.stopWatching?.();
+    this.stopWatching = undefined;
+    this.link = link;
+    this.bridgePath = link?.kind === 'bridge' ? link.name : null;
+    this.linkedFile = link?.kind === 'file' ? link.name : null;
+    this.bridgeBase = base;
+    this.bridgeEtag = etag;
+    this.bridgeDirty = false;
+    if (link?.kind === 'file') {
+      // Another program (an agent, an editor) changed the file: merge it like a bridge change.
+      this.stopWatching = (link as FileLink).watch(
+        () => void this.enqueue(() => this.pullBridge()),
+        (e) => {
+          if (this.link !== link) return;
+          this.setLink(null, null, null);
+          this.toast(`Lost access to ${link.name} (${e.message}); changes are kept in the browser only.`, 'warn', 9000);
+        },
+      );
+    }
+  }
+
+  /**
+   * Keep the open document's annotations in sync with a file (Chromium file handle): written on every
+   * change, re-read when another program changes it. The handle is remembered for the next session.
+   */
+  async linkFile(handle: FileSystemFileHandle): Promise<void> {
+    const pdf = this.pdf;
+    const local = this.persistable();
+    if (!pdf || !local) return;
+    const link = fileLink(handle);
+    const disk = await link.read();
+    this.setLink(link, local, null);
+    this.reconnectable = null;
+    await storage.setSetting(`handle:${pdf.sha256}`, handle).catch(() => undefined);
+    if (disk) {
+      // Whatever the file says wins where it differs; the previous state stays one undo step away.
+      await this.enqueue(() => this.pullBridge());
+    } else {
+      this.bridgeDirty = true;
+      await this.flushSave();
+    }
+  }
+
+  /** Stop writing to the linked file (it is left as it is). */
+  async unlinkFile(): Promise<void> {
+    if (this.link?.kind !== 'file') return;
+    await this.flushSave();
+    await this.bridgeChain;
+    if (this.pdf) await storage.deleteSetting(`handle:${this.pdf.sha256}`).catch(() => undefined);
+    this.setLink(null, null, null);
+  }
+
+  /** Ask again for access to the file of an earlier session (needs the click that calls this). */
+  async reconnectFile(): Promise<void> {
+    const handle = this.reconnectable;
+    if (!handle) return;
+    try {
+      if (await hasPermission(handle, true)) await this.linkFile(handle);
+      else this.toast(`No access to ${handle.name}; changes are kept in the browser only.`, 'warn');
+    } catch (e) {
+      this.reconnectable = null;
+      this.toast(`Cannot reach ${handle.name}: ${(e as Error).message}`, 'error', 9000);
+    }
+  }
+
+  /** Whether "Open" uses Chromium's picker (writable handles) instead of the file input. */
+  get canPickHandles(): boolean {
+    return canPickHandles();
+  }
+
+  /** Open through Chromium's picker; an annotation file picked along with the PDF stays linked. */
+  async pickAndOpen(): Promise<void> {
+    let handles: FileSystemFileHandle[] | null;
+    try {
+      handles = await pickHandles();
+    } catch (e) {
+      this.toast(`Could not open the file: ${(e as Error).message}`, 'error');
+      return;
+    }
+    if (!handles?.length) return;
+    const files = await Promise.all(handles.map((h) => h.getFile()));
+    await this.openFiles(files);
+    const annot = handles.find((h) => /\.json$/i.test(h.name));
+    if (!annot) return;
+    let sha: unknown;
+    try {
+      sha = (JSON.parse(await (await annot.getFile()).text()) as { document?: { sha256?: unknown } }).document?.sha256;
+    } catch {
+      return;
+    }
+    if (this.pdf && !this.mismatch && this.pdf.sha256 === sha) await this.linkFile(annot);
+  }
+
   // ── Bridge: connection, live sync and merge (spec §9.3) ─────────────────────────────────────
 
   async connectBridge(conn: BridgeConnection): Promise<boolean> {
@@ -922,7 +1032,7 @@ class App {
     this.stopFollowing = undefined;
     this.client = null;
     this.bridge = null;
-    this.bridgePath = null;
+    if (this.link?.kind === 'bridge') this.setLink(null, null, null);
     forgetConnection();
   }
 
@@ -943,7 +1053,7 @@ class App {
     this.loading = 'Opening from the bridge…';
     try {
       const [bytes, annot] = await Promise.all([client.pdf(path), client.annot(path)]);
-      await this.openPdf(bytes, path.split('/').pop()!, annot?.text, { path, etag: annot?.etag ?? null });
+      await this.openPdf(bytes, path.split('/').pop()!, annot?.text, { link: bridgeLink(client, path), etag: annot?.etag ?? null });
     } catch (e) {
       this.toast(e instanceof MarginError || e instanceof BridgeError ? e.message : `Could not open ${path}: ${(e as Error).message}`, 'error', 9000);
     } finally {
@@ -984,22 +1094,21 @@ class App {
 
   /** Bridge operations run one at a time so that a pull never interleaves with a write. */
   private enqueue(fn: () => Promise<void>): Promise<void> {
-    this.bridgeChain = this.bridgeChain.then(fn).catch((e) => this.toast(`Bridge: ${(e as Error).message}`, 'error', 9000));
+    this.bridgeChain = this.bridgeChain.then(fn).catch((e) => this.toast(`${this.link?.kind === 'file' ? this.link.name : 'Bridge'}: ${(e as Error).message}`, 'error', 9000));
     return this.bridgeChain;
   }
 
   /** Write the annotation file through the bridge; if the disk moved on meanwhile, merge and retry. */
   private async writeBridge(): Promise<void> {
-    const client = this.client;
-    const path = this.bridgePath;
-    if (!client || !path || !this.bridgeDirty) return;
+    const link = this.link;
+    if (!link || !this.bridgeDirty) return;
     for (let attempt = 0; attempt < 4; attempt++) {
       const file = this.persistable();
       if (!file) return;
       const text = serialize(file);
       const tag = await sha256Hex(encoder.encode(text));
       this.ownEtags = [...this.ownEtags.slice(-19), tag];
-      const r = await client.putAnnot(path, text, this.bridgeEtag);
+      const r = await link.write(text, this.bridgeEtag);
       if (r.ok) {
         this.bridgeEtag = r.etag;
         this.bridgeBase = file;
@@ -1014,13 +1123,12 @@ class App {
 
   /** Read the annotation file from the bridge and merge what changed there into the open document. */
   private async pullBridge(): Promise<void> {
-    const client = this.client;
-    const path = this.bridgePath;
+    const link = this.link;
     const pdf = this.pdf;
     const local = this.file;
     const base = this.bridgeBase;
-    if (!client || !path || !pdf || !local || !base) return;
-    const got = await client.annot(path);
+    if (!link || !pdf || !local || !base) return;
+    const got = await link.read();
     if (!got) {
       this.bridgeEtag = null;
       this.bridgeDirty = true;
@@ -1099,15 +1207,24 @@ class App {
     } catch (e) {
       this.toast(`Could not save to browser storage: ${(e as Error).message}`, 'error');
     }
-    if (this.client && this.bridgePath && this.bridgeDirty && !this.bridgeWritesPaused) await this.enqueue(() => this.writeBridge());
+    if (this.link && this.bridgeDirty && !this.bridgeWritesPaused) await this.enqueue(() => this.writeBridge());
   }
 
   /** "Save annotations": download the .annot.json (spec §7.6). */
   async downloadAnnotations(): Promise<void> {
     const f = this.persistable();
     if (!f) return;
+    if (this.link?.kind === 'file') {
+      await this.flushSave();
+      await this.bridgeChain;
+      this.toast(`Saved to ${this.link?.name ?? 'the linked file'}.`);
+      return;
+    }
     const target = await chooseTarget(f.document.fileName.replace(/\.pdf$/i, '') + '.annot.json', 'application/json');
-    if (target) await writeTarget(target, new Blob([serialize(f)], { type: 'application/json' }));
+    if (!target) return;
+    await writeTarget(target, new Blob([serialize(f)], { type: 'application/json' }));
+    // Chromium: the saved file stays linked, so later changes are written to it too.
+    if ('handle' in target && this.link?.kind !== 'bridge') await this.linkFile(target.handle);
   }
 
   // ── Grading report (§8.4) ───────────────────────────────────────────────────────────────────

@@ -160,7 +160,7 @@ export const storage = {
     return tx<DocRecord | undefined>('docs', 'readonly', (s) => s.get(sha));
   },
 
-  /** "Forget this document": deletes its PDF and annotations from browser storage. */
+  /** "Forget this document": deletes its PDF, annotations and grading report from browser storage. */
   async forget(sha: string): Promise<void> {
     await (await pick()).remove(sha);
     await tx('docs', 'readwrite', (s) => s.delete(sha));
@@ -172,6 +172,12 @@ export const storage = {
     await idbBackend.clear();
     await tx('docs', 'readwrite', (s) => s.clear());
     await tx('kv', 'readwrite', (s) => s.clear());
+    // UI hints (no document data), so that nothing of Margin's remains in the origin.
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith('margin.')) localStorage.removeItem(k);
+    } catch {
+      /* storage may be unavailable */
+    }
   },
 
   async deleteSetting(key: string): Promise<void> {
