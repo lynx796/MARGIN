@@ -2,7 +2,9 @@
 
 Margin is a local-first PDF grading annotator. The full specification is `margin-spec.md`; read the
 section relevant to your task before changing behavior. This file is for agents *developing* Margin.
-(Agents *using* Margin read `margin agent-guide` instead.)
+(Agents *using* Margin read `margin agent-guide` instead.) User documentation is in `docs/`: `guide.md`,
+`deployment.md` (local setup, Docker/nginx) and `privacy.md` (what happens to data, with an audit of spec vs.
+implementation; keep it true when you change storage, network, export or pseudonymization behavior).
 
 ## Commands
 
@@ -14,6 +16,8 @@ pnpm dev                     # web app dev server (http://localhost:5173); open 
 pnpm typecheck               # tsc -b for core and cli, svelte-check for web
 pnpm margin <command> …      # run the CLI from source, e.g. pnpm margin read fixtures/plain/plain.pdf
 pnpm --filter @margin/web build && pnpm margin serve --dir <dir>   # bridge + app on one origin, prints the token URL
+E2E_BASE_URL=https://… pnpm test:e2e --grep "full session"        # phase 6 gate against a deployed copy
+docker build -t margin . && docker run --rm -p 8080:8080 margin     # the deployable image (nginx, static files)
 pnpm fixtures:build          # recompile fixture PDFs from their .tex sources (needs latexmk)
 pnpm fixtures:annotate       # rebuild fixtures/*/<name>.annot.json from fixtures/*/ops.json
 pnpm golden:update           # regenerate golden outputs after an intended layout change; review the diff
@@ -54,10 +58,12 @@ First time: `pnpm exec playwright install chromium firefox`.
 | `lib/selection.ts` | Text selection on the core's character boxes (pure, unit-tested). The browser's own selection is not used. |
 | `lib/mathcm.ts` | CodeMirror extensions: math widgets, floating preview, `@` picker, key handling. |
 | `lib/bridge.ts` | Client of the bridge: token handling, list/read/write, reconnecting event stream. |
+| `lib/filelink.ts` | `AnnotLink`: where the annotation file is synced to, the bridge or a Chromium file handle (polled once a second). |
 | `lib/storage.ts` | OPFS (IndexedDB fallback) for PDFs and annotations, IndexedDB index and settings. |
 | `lib/export.worker.ts` | PDF export off the main thread. |
 | `components/PageView.svelte` | One page: canvas drawn with transform T, overlay, editor, pointer interaction. |
 | `components/Overlay.svelte` | The page's display list as SVG (glyph runs carry one x per character). |
+| `offline.ts` (package root) | Build plugin: SRI attributes in `index.html`, and `sw.js` precaching every built file. |
 
 Rules for the web app:
 
@@ -84,6 +90,13 @@ Rules for the web app:
   and the mapping run on the main thread via a lazy `import('@margin/core/pseudo')`. Saving is disabled until the
   review checkbox is ticked. Terms are kept per paper (`terms:<sha>`), mappings by the copy's hash (`pseudo:<sha>`);
   a copy with a mapping shows "Transfer to original". `vite.config.ts` excludes `mupdf` from dependency pre-bundling.
+- Linked annotation file (`lib/filelink.ts`): the bridge and Chromium file handles share one sync path in
+  `state.svelte.ts` (`setLink`, `pullBridge`, `writeBridge`); a file handle has no compare-and-swap, so `write`
+  re-reads and compares the hash right before writing. Handles are kept as `handle:<sha>` settings.
+- Offline and deployment (spec §11, phase 6): `offline.ts` runs after the build; the service worker never handles
+  `/api/` or other origins. Playwright blocks service workers except in `privacy.spec.ts`. The nginx image
+  (`Dockerfile`, `deploy/`) sends the CSP of `bridge/src/csp.ts`; `web/test/deploy.test.ts` keeps them equal.
+  `VITE_SOURCE_URL` (Docker `SOURCE_URL`) is the AGPL source link on the start screen.
 - Agent comments (`origin: agent`, not `reviewed`) get a dashed outline and an "AI" badge in `Overlay.svelte`
   only. Those marks are screen-only; they are not in the display list and never in the export.
   Accept with Enter, the badge, or "Accept all on page"; editing a comment also accepts it.
@@ -166,7 +179,9 @@ Implementation notes that are not obvious from the spec:
   gate is `packages/cli/test/agent-workflow.test.ts`: an "agent" that only follows `margin agent-guide` adds
   10 quote-anchored comments with zero unresolved anchors. If you change CLI behavior, update
   `src/agent-guide.md` and keep that test passing.
-- E2E (`packages/web/e2e`, Playwright, both browsers): editing, persistence, panels, settings, export, bridge.
+- E2E (`packages/web/e2e`, Playwright, both browsers): editing, persistence, panels, settings, export, bridge,
+  linked files, pseudonymization, and `privacy.spec.ts` (no request leaves the origin during a full session; the
+  app works offline afterwards).
   `export.spec.ts` compares the screen overlay with the exported PDF at 150 dpi with a 1 px
   tolerance (and a shifted copy as negative control).
 - Fixtures (`fixtures/<name>/`): `<name>.tex` → `<name>.pdf` (reproducible build), `ops.json` →
