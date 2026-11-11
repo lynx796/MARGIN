@@ -36,7 +36,7 @@
     <h1>Margin</h1>
     <p class="tag">Grade compiled LaTeX papers with typeset comments in the margins.</p>
 
-    <button class="drop" onclick={() => input.click()} data-testid="open-button">
+    <button class="drop" onclick={() => (app.canPickHandles ? app.pickAndOpen() : input.click())} data-testid="open-button">
       <strong>Open a PDF</strong>
       <span>or drop it here, optionally together with its <code>.annot.json</code> file</span>
     </button>

@@ -62,6 +62,12 @@
     </span>
   {/if}
 
+  {#if app.linkedFile}
+    <button class="bridge linked" title="Changes are written to {app.linkedFile}, and changes made to it by other programs appear here. Click to stop." onclick={() => app.unlinkFile()} data-testid="linked-file">● {app.linkedFile}</button>
+  {:else if app.reconnectable}
+    <button class="bridge offline linked" title="Allow access again to keep {app.reconnectable.name} in sync" onclick={() => app.reconnectFile()} data-testid="reconnect-file">○ Reconnect {app.reconnectable.name}</button>
+  {/if}
+
   {#each badges as b (b.key)}
     {#if b.key === 'review'}
       <button class="badge review" title={b.tip} data-testid="badge-review" onclick={() => ((app.originFilter = 'unreviewed'), (app.sidebarOpen = true))}>{b.text(b.n)}</button>
@@ -234,6 +240,15 @@
   }
   .bridge.offline {
     color: #b45309;
+  }
+  button.linked {
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .home {
     padding: 4px 8px;
