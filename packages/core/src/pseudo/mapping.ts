@@ -74,14 +74,18 @@ function mapAnnotation(a: Annotation, fn: (s: string) => string): Annotation {
 }
 
 /**
- * The annotation file for the redacted copy: terms in bodies, quotes, category names and agent
- * metadata become tokens; geometry is unchanged. A grading report reference is dropped.
+ * The annotation file for the redacted copy: terms in bodies, quotes, category names, agent
+ * metadata and unknown fields become tokens; geometry is unchanged. A grading report reference is dropped.
  */
 export function pseudonymizeAnnotations(file: AnnotFile, groups: TermGroup[], redacted: DocumentInfo): AnnotFile {
   const sub = (s: string) => substituteTerms(s, groups);
-  const { report: _report, ...rest } = file;
+  const { report: _report, format, version, settings, ...extra } = file;
   return {
-    ...rest,
+    // Unknown top-level fields (e.g. an agent's x-* notes) may quote the paper, so they are substituted too.
+    ...mapStrings(extra, sub),
+    format,
+    version,
+    settings,
     document: { ...redacted },
     categories: file.categories.map((c) => ({ ...c, name: sub(c.name) })),
     annotations: file.annotations.map((a) => mapAnnotation(a, sub)),
