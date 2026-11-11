@@ -23,6 +23,9 @@
     if (files.length) void app.openFiles(files);
   }
 
+  // AGPL-3.0 §13: users of a hosted copy must be offered the source. Set at build time (VITE_SOURCE_URL).
+  const sourceUrl = import.meta.env.VITE_SOURCE_URL as string | undefined;
+
   function fmt(iso: string): string {
     return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   }
@@ -86,6 +89,7 @@
     {/if}
 
     <p class="privacy">Everything stays on this device. Documents and annotations are stored in your browser ({app.storageKind ?? 'storage unavailable'}), never uploaded.</p>
+    <p class="license">Margin is free software under the <abbr title="GNU Affero General Public License, version 3 or later">AGPL-3.0</abbr>.{#if sourceUrl}{' '}<a href={sourceUrl} rel="noreferrer">Source code</a>{/if}</p>
   </div>
 </main>
 
@@ -205,12 +209,16 @@
     border-color: var(--border);
   }
   .empty,
-  .privacy {
+  .privacy,
+  .license {
     color: var(--muted);
     font-size: 12px;
   }
   .privacy {
     margin-top: 22px;
+  }
+  .license a {
+    color: inherit;
   }
   code {
     font-size: 12px;
