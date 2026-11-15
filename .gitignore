@@ -14,6 +14,6 @@ packages/web/test-results/
 packages/web/playwright-report/
 fixtures/names/notes.txt
 
-# Local Docker Compose additions (deploy/compose.override.example.yaml)
-deploy/compose.override.yaml
-deploy/local-headers.conf
+
+# Local settings for docker compose (PROXY_NETWORK, MARGIN_SOURCE_URL)
+.env

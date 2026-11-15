@@ -1,6 +1,5 @@
 # Margin web app as a static site behind nginx (spec §11 "Deployment", phase 6).
-#   docker build -t margin .
-#   docker run --rm -p 8080:8080 margin
+#   docker compose up -d --build        (see compose.yaml; reachable as http://margin:8080)
 # Pin the base images by digest (image@sha256:…) for reproducible deployments.
 ARG NODE_IMAGE=node:22-alpine
 ARG NGINX_IMAGE=nginxinc/nginx-unprivileged:stable-alpine
@@ -24,13 +23,8 @@ COPY fonts fonts
 COPY packages packages
 RUN pnpm install --frozen-lockfile --offline && pnpm --filter @margin/web build
 
-# Only the built files, for serving them from your own web server (no container at runtime):
-#   docker build --target static --output type=local,dest=/srv/margin/www .
-FROM scratch AS static
-COPY --from=build /src/packages/web/dist /
-
 FROM ${NGINX_IMAGE}
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
-COPY deploy/margin.conf deploy/security-headers.conf /etc/nginx/margin/
+COPY deploy/security-headers.conf /etc/nginx/margin/security-headers.conf
 COPY --from=build /src/packages/web/dist /usr/share/nginx/html
 EXPOSE 8080
