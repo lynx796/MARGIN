@@ -389,8 +389,10 @@ the mapping is a separate download), but they are in browser storage (section 3.
   service worker's cache name, a hash over every file, was identical across builds in this audit).
 - ⚠️ The Dockerfile references base images by tag (`node:22-alpine`,
   `nginxinc/nginx-unprivileged:stable-alpine`). Pin them by digest for reproducible images.
-- ⚠️ Not verified in this audit: building and running the Docker image (no Docker daemon was
-  available). Run the checks in [deployment.md](deployment.md#verify-a-deployment) after deploying.
+- ✅ The Docker image was built and run with the hardening options of `deploy/compose.yaml`
+  (read-only, all capabilities dropped), and `privacy.spec.ts` passed against it in Chromium and
+  Firefox, including the CSP header check (2026-11-15). Run the checks in
+  [deployment.md](deployment.md#5-verify-a-deployment) after deploying your own copy.
 
 ---
 

@@ -213,6 +213,19 @@ server {
 }
 ```
 
+Both examples assume the proxy runs **on the host**, where the container is reachable at
+`127.0.0.1:8080`. If your reverse proxy itself runs **in a container**, `127.0.0.1` is that container,
+and a name like `margin` only resolves on a shared Docker network (otherwise `nginx -t` fails with
+*host not found in upstream*). Then:
+
+```sh
+docker network create proxy            # once; attach your proxy container to it as well
+```
+
+uncomment the `networks:` lines in `deploy/compose.yaml`, run `docker compose -f deploy/compose.yaml
+up -d --build`, and use `proxy_pass http://margin:8080;` in the proxy. Start Margin before reloading the
+proxy: nginx resolves upstream names when it loads its configuration.
+
 The proxy must pass the container's response headers through unchanged (both examples do). Keep the
 proxy's own access log off, or state in your privacy notice that it records IP addresses.
 
@@ -297,4 +310,7 @@ deployment you trust; otherwise use the local setup, which serves the app from y
 | A hosted copy still shows the old version | Reload once more (the service worker installs the new version in the background), or check that `sw.js` and `index.html` are not cached by a proxy. |
 | `latexmk was not found` | Install TeX Live / MacTeX, or compile the report yourself and pass the PDF to `--report`. |
 | Changes to the annotation file made by an agent do not appear (without bridge) | Only the bridge (all browsers) and linked files (Chromium) pick up external changes. Otherwise drop the `.annot.json` onto the app again. |
+| `docker compose up` prints *pull access denied for margin … may require 'docker login'* | Older copies of `deploy/compose.yaml` lacked `pull_policy: build`, so Compose first tried to pull `margin:latest` from Docker Hub, where it does not exist, and then built it locally. Harmless; update the compose file to silence it. |
+| The container restarts endlessly, `docker compose ps` shows `Restarting (0)` and the logs are empty | The image has no nginx stage: the final `FROM ${NGINX_IMAGE}` block of the `Dockerfile` is missing or commented out, so the image ends with the Node build stage, whose default command (`node`) exits at once. Restore the block and rebuild with `--build`. Check with `docker image inspect margin:latest --format '{{.Config.Cmd}}'` (it must not be `[node]`). |
+| The reverse proxy's `nginx -t` says *host not found in upstream* | The proxy cannot resolve the Margin container: see [Put TLS in front](#3-put-tls-in-front) for a proxy running in a container, and make sure Margin is running first. |
 | Docker build fails at `pnpm install --frozen-lockfile` | The lockfile does not match `package.json`. Run `pnpm install` locally and commit `pnpm-lock.yaml`. |
