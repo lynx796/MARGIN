@@ -17,7 +17,7 @@ pnpm typecheck               # tsc -b for core and cli, svelte-check for web
 pnpm margin <command> …      # run the CLI from source, e.g. pnpm margin read fixtures/plain/plain.pdf
 pnpm --filter @margin/web build && pnpm margin serve --dir <dir>   # bridge + app on one origin, prints the token URL
 E2E_BASE_URL=https://… pnpm test:e2e --grep "full session"        # phase 6 gate against a deployed copy
-docker build -t margin . && docker run --rm -p 8080:8080 margin     # the deployable image (nginx, static files)
+docker compose up -d --build   # the deployable service (needs the external network `proxy`; reached as margin:8080)
 pnpm fixtures:build          # recompile fixture PDFs from their .tex sources (needs latexmk)
 pnpm fixtures:annotate       # rebuild fixtures/*/<name>.annot.json from fixtures/*/ops.json
 pnpm golden:update           # regenerate golden outputs after an intended layout change; review the diff
@@ -97,9 +97,9 @@ Rules for the web app:
   `/api/` or other origins. Playwright blocks service workers except in `privacy.spec.ts`. The nginx image
   (`Dockerfile`, `deploy/`) sends the CSP of `bridge/src/csp.ts`; `web/test/deploy.test.ts` keeps them equal.
   `VITE_SOURCE_URL` (Docker `SOURCE_URL`) is the AGPL source link on the start screen.
-  `deploy/margin.conf` is the site config shared by the image's nginx and by operators' own nginx (Dockerfile target
-  `static` exports the build for that). **Never edit `deploy/compose.yaml`**: servers modify their copy, and a change
-  would break their `git pull` (a test pins its hash); put new options in `deploy/compose.override.example.yaml`.
+  `compose.yaml` (root) runs the image as a service behind the operator's reverse proxy: no published ports, external
+  network `${PROXY_NETWORK:-proxy}`, reachable as `margin:8080`. Settings come from `.env` (git-ignored), so servers
+  never need to edit tracked files; keep it that way (`web/test/deploy.test.ts` checks the essentials).
 - Agent comments (`origin: agent`, not `reviewed`) get a dashed outline and an "AI" badge in `Overlay.svelte`
   only. Those marks are screen-only; they are not in the display list and never in the export.
   Accept with Enter, the badge, or "Accept all on page"; editing a comment also accepts it.

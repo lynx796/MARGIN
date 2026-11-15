@@ -1,0 +1,28 @@
+# Margin as a service behind your reverse proxy:
+#   docker compose up -d --build
+# No ports are published. The container joins the existing Docker network "proxy" (set
+# PROXY_NETWORK to use another name) and is reachable there as http://margin:8080.
+# Optional, e.g. in .env next to this file: MARGIN_SOURCE_URL=https://… (the source link that
+# AGPL-3.0 §13 asks hosted copies to show; it appears on the start screen).
+services:
+  margin:
+    build:
+      context: .
+      args:
+        SOURCE_URL: ${MARGIN_SOURCE_URL:-}
+    image: margin:latest
+    pull_policy: build
+    container_name: margin
+    restart: unless-stopped
+    networks: [proxy]
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK:-proxy}
+    external: true
