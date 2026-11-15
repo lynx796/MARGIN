@@ -97,6 +97,9 @@ Rules for the web app:
   `/api/` or other origins. Playwright blocks service workers except in `privacy.spec.ts`. The nginx image
   (`Dockerfile`, `deploy/`) sends the CSP of `bridge/src/csp.ts`; `web/test/deploy.test.ts` keeps them equal.
   `VITE_SOURCE_URL` (Docker `SOURCE_URL`) is the AGPL source link on the start screen.
+  `deploy/margin.conf` is the site config shared by the image's nginx and by operators' own nginx (Dockerfile target
+  `static` exports the build for that). **Never edit `deploy/compose.yaml`**: servers modify their copy, and a change
+  would break their `git pull` (a test pins its hash); put new options in `deploy/compose.override.example.yaml`.
 - Agent comments (`origin: agent`, not `reviewed`) get a dashed outline and an "AI" badge in `Overlay.svelte`
   only. Those marks are screen-only; they are not in the display list and never in the export.
   Accept with Enter, the badge, or "Accept all on page"; editing a comment also accepts it.

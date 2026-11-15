@@ -24,8 +24,13 @@ COPY fonts fonts
 COPY packages packages
 RUN pnpm install --frozen-lockfile --offline && pnpm --filter @margin/web build
 
+# Only the built files, for serving them from your own web server (no container at runtime):
+#   docker build --target static --output type=local,dest=/srv/margin/www .
+FROM scratch AS static
+COPY --from=build /src/packages/web/dist /
+
 FROM ${NGINX_IMAGE}
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
-COPY deploy/security-headers.conf /etc/nginx/margin/security-headers.conf
+COPY deploy/margin.conf deploy/security-headers.conf /etc/nginx/margin/
 COPY --from=build /src/packages/web/dist /usr/share/nginx/html
 EXPOSE 8080
