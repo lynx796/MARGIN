@@ -13,6 +13,13 @@ describe('deployment (spec §11)', () => {
     expect(csp).toBe(CSP_HEADER);
   });
 
+  it('the image ends with the nginx stage serving the build', () => {
+    // Without it the image is the Node build stage, whose default command exits at once (restart loop).
+    const stages = readFileSync(repo('Dockerfile'), 'utf8').split('\n').filter((l) => /^FROM\s/.test(l));
+    expect(stages.at(-1)).toBe('FROM ${NGINX_IMAGE}');
+    expect(readFileSync(repo('Dockerfile'), 'utf8')).toMatch(/^COPY --from=build \/src\/packages\/web\/dist \/usr\/share\/nginx\/html$/m);
+  });
+
   it('nginx accepts no request that could carry data', () => {
     const conf = readFileSync(repo('deploy/nginx.conf'), 'utf8');
     expect(conf).toMatch(/if \(\$request_method !~ \^\(GET\|HEAD\)\$\) \{\s*return 405;/);
