@@ -6,11 +6,23 @@ import { addIntegrity, serviceWorkerSource } from '../offline.ts';
 
 const repo = (p: string) => new URL(`../../../${p}`, import.meta.url);
 
+/** deploy/compose.yaml as first released. Servers edit their copy; never change the tracked file. */
+const COMPOSE_SHA = '0780653bc30e';
+
 describe('deployment (spec §11)', () => {
   it('nginx sends the same CSP as margin serve', () => {
     const conf = readFileSync(repo('deploy/security-headers.conf'), 'utf8');
     const csp = /add_header Content-Security-Policy "([^"]+)" always;/.exec(conf)?.[1];
     expect(csp).toBe(CSP_HEADER);
+  });
+
+  it('the image includes the shared site configuration', () => {
+    expect(readFileSync(repo('deploy/nginx.conf'), 'utf8')).toContain('include /etc/nginx/margin/margin.conf;');
+    expect(readFileSync(repo('Dockerfile'), 'utf8')).toContain('COPY deploy/margin.conf deploy/security-headers.conf /etc/nginx/margin/');
+  });
+
+  it('compose.yaml stays as cloned, so local edits survive git pull (changes go in compose.override.yaml)', () => {
+    expect(createHash('sha256').update(readFileSync(repo('deploy/compose.yaml'))).digest('hex').slice(0, 12)).toBe(COMPOSE_SHA);
   });
 
   it('the image ends with the nginx stage serving the build', () => {
@@ -21,7 +33,7 @@ describe('deployment (spec §11)', () => {
   });
 
   it('nginx accepts no request that could carry data', () => {
-    const conf = readFileSync(repo('deploy/nginx.conf'), 'utf8');
+    const conf = readFileSync(repo('deploy/margin.conf'), 'utf8');
     expect(conf).toMatch(/if \(\$request_method !~ \^\(GET\|HEAD\)\$\) \{\s*return 405;/);
     expect(conf).not.toMatch(/proxy_pass|fastcgi_pass|uwsgi_pass|dav_methods/);
   });
